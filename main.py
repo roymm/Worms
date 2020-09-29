@@ -31,6 +31,7 @@ def obtenerValoresLineaComandos(argv):
             stringProductor = arg
         elif opt in ("-c", "--C"):
             stringConsumidor = arg
+            #juejue
 
     return int(stringProductor), int(stringConsumidor)
 
