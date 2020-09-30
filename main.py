@@ -20,18 +20,30 @@ def initSetUp(numberWorms):
 
 #Funcion que toma los valores ingresados por el usuario en la linea de comandos y los verifica
 def obtenerValoresLineaComandos(argv):
-    stringProductor = ""
-    stringConsumidor = ""
+    decLuciferin = ""
+    incLuciferin = ""
+    distWorms = ""
+    valIniLuciferin = ""
+    classes = ""
+    worms = ""
     try:
-        opts, arg = getopt.getopt(argv, "p:c:", ["P=", "C="])
+        opts, arg = getopt.getopt(argv, "r:g:s:l:k:m", ["R=", "G=", "S=", "L=", "K=", "M="])
     except getopt.GetoptError:
         sys.exit(2)
     for opt, arg in opts:
-        if opt in ("-p", "--P"):
-            stringProductor = arg
-        elif opt in ("-c", "--C"):
-            stringConsumidor = arg
-            #juejue
+        if opt in ("-r", "--R"):
+            decLuciferin = arg
+        elif opt in ("-g", "--G"):
+            incLuciferin = arg
+        elif opt in ("-s", "--S"):
+            distWorms = arg
+        elif opt in ("-l", "--L"):
+            valIniLuciferin = arg
+        elif opt in ("-k", "--K"):
+            classes = arg
+        elif opt in ("-m", "--M"):
+            worms = arg
+    return int(decLuciferin), int(incLuciferin), int(distWorms). int(valIniLuciferin), int(classes), int(worms)
 
     return int(stringProductor), int(stringConsumidor)
 
