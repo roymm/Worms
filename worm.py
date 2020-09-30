@@ -7,10 +7,10 @@ class Worm:
         self.coveredSet = None
         self.intradistance = intradistance
         
-     def __str__(self):
+    def __str__(self):
         return (f"Worm:"
-        f"Coordinates: {self.coordinates}"
-        f"Luciferin: {self.luciferin}"
-        f"Adaptation (F): {self.adaptation}"
-        f"Covered data set: {self.coveredSet}"
-        f"Intradistance: {self.}")
+            f"Coordinates: {self.coordinates}"
+            f"Luciferin: {self.luciferin}"
+            f"Adaptation (F): {self.adaptation}"
+            f"Covered data set: {self.coveredSet}"
+            f"Intradistance: {self.intradistance}")
