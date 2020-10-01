@@ -22,3 +22,11 @@ def EQ1(t,rho,gamma):
 #Fucnion que calcula el valor de adaptacion
 def EQ9(t):
     return
+
+"""
+def EQ3(j,z):
+    sumatoria=0
+    for k in range (EQ2(j)):
+        sumatoria = sumatoria + EQ2(j)*(EQ1(k)-formula1(j))
+    resultado= (formula1(z)-formula1(j))/sumatoria
+"""
