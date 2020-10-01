@@ -1,4 +1,5 @@
 from mpi4py import MPI
+import getopt
 import numpy as np
 import logging
 import sys
@@ -29,18 +30,14 @@ size = comm.size            #obt cantidad de procesos corriendo el programa
 def initSetUp(numberWorms):
     #Creacion de universo con una matriz de 13 (cartas) * 4 (palos) * 5 cartas en la mano
     if(pid == 0):
-        cards = np.resize(np.arange(13),(5,4,13))
-        print(cards)
-    
-    #Procesamiento de archivo de manos
-    #if(pid == 0):
-    #    for line in open('poker-hand-training-true.data'):
-    #        linesFile += [line]
-    #    numLinesFile = len(linesFile)
-    #    vi = int(pid*numLinesFile/size)
-    #    vf = int((pid+1)*numLinesFile/size) - 1
-    #    for i in range(vi,vf):
-    #        np.fromstring(linesFile[i], dtype=int, sep=',')
+        allCards = np.resize(np.arange(13),(5,4,13))
+        
+        #print(allCards)
+        testHands = []
+        #Procesamiento de archivo de manos
+        for line in open('poker-hand-training-true.data'):
+            testHands.append(np.fromstring(line, dtype=int, sep=','))
+        testHands = np.array(testHands)
 
 #Funcion que toma los valores ingresados por el usuario en la linea de comandos y los verifica
 def obtenerValoresLineaComandos(argv):
@@ -68,8 +65,6 @@ def obtenerValoresLineaComandos(argv):
         elif opt in ("-m", "--M"):
             worms = arg
     return int(decLuciferin), int(incLuciferin), int(distWorms). int(valIniLuciferin), int(classes), int(worms)
-
-    return int(stringProductor), int(stringConsumidor)
 
 def main(argv):
     comm = MPI.COMM_WORLD
