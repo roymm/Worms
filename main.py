@@ -25,19 +25,41 @@ import card
 comm = MPI.COMM_WORLD		# obt acceso al "comunicador"
 pid = comm.rank				# obt numero de proceso	
 size = comm.size            #obt cantidad de procesos corriendo el programa
+indexList = []              #Listas inversas de cada carta en cada posicion de la mano
+allCards = []               #Todas las cartas en las 5 posiciones (universo)
+testHands = []              #Archivo poker-hand-training-true.data en memoria
 
 #Funcion que crea los gusanos iniciales y hace otras cosas del inicio que todavia no sabemos
 def initSetUp(numberWorms):
     #Creacion de universo con una matriz de 13 (cartas) * 4 (palos) * 5 cartas en la mano
+    num = 0
     if(pid == 0):
         allCards = np.resize(np.arange(13),(5,4,13))
         
-        #print(allCards)
-        testHands = []
+        #Agrega las 5 posiciones
+        for i in range (5):
+            indexList.append([])
+
+            #Agrego los 4 palos
+            for j in range(4):
+                indexList[i].append([])
+
+                #Agrego las lista inversa correspondiente a cada carta
+                for k in range(13):
+                    indexList[i][j].append([])
+                    indexList[i][j][k].append(0)
+
+        numLine = 0
         #Procesamiento de archivo de manos
-        for line in open('poker-hand-training-true.data'):
-            testHands.append(np.fromstring(line, dtype=int, sep=','))
-        testHands = np.array(testHands)
+        #for line in open('poker-hand-training-true.data'):
+        #    arrayLine = np.fromstring(line, dtype=int, sep=',')
+        #    
+        #    #Leo el palo 
+        #    for i in range(len(arrayLine)-1):
+
+
+        #    testHands.append(arrayLine)
+        #testHands = np.array(testHands)
 
 #Funcion que toma los valores ingresados por el usuario en la linea de comandos y los verifica
 def obtenerValoresLineaComandos(argv):
