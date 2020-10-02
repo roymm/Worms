@@ -30,9 +30,11 @@ allCards = []               #Todas las cartas en las 5 posiciones (universo)
 testHands = []              #Archivo poker-hand-training-true.data en memoria
 
 #Funcion que crea los gusanos iniciales y hace otras cosas del inicio que todavia no sabemos
-def initSetUp(numberWorms):
+def initSetUp():
+    global testHands
+    global allCards
+    global indexList
     #Creacion de universo con una matriz de 13 (cartas) * 4 (palos) * 5 cartas en la mano
-    num = 0
     if(pid == 0):
         allCards = np.resize(np.arange(13),(5,4,13))
         
@@ -47,19 +49,24 @@ def initSetUp(numberWorms):
                 #Agrego las lista inversa correspondiente a cada carta
                 for k in range(13):
                     indexList[i][j].append([])
-                    indexList[i][j][k].append(0)
 
         numLine = 0
         #Procesamiento de archivo de manos
-        #for line in open('poker-hand-training-true.data'):
-        #    arrayLine = np.fromstring(line, dtype=int, sep=',')
-        #    
-        #    #Leo el palo 
-        #    for i in range(len(arrayLine)-1):
-
-
-        #    testHands.append(arrayLine)
-        #testHands = np.array(testHands)
+        for line in open('poker-hand-training-true.data'):
+            arrayLine = np.fromstring(line, dtype=int, sep=',')
+            position = 0
+            #Leo el palo 
+            for i in range(0,len(arrayLine)-1,2):
+                rank = arrayLine[i]
+                card = arrayLine[i+1]
+                indexList[position][rank-1][card-1].append(numLine)
+                position += 1
+                
+            numLine += 1
+            testHands.append(arrayLine)
+        
+        testHands = np.array(testHands)
+        print(indexList[0][0][12])
 
 #Funcion que toma los valores ingresados por el usuario en la linea de comandos y los verifica
 def obtenerValoresLineaComandos(argv):
@@ -112,10 +119,13 @@ def main(argv):
     tiempoInicial = MPI.Wtime() #Para medir el tiempo pared
     comm.Barrier()
     
-    initSetUp(10)
+    initSetUp()
     
     diferenciaTiempo = MPI.Wtime() - tiempoInicial  #Calcula el tiempo pared
     tiempoMaxTotal = comm.reduce(diferenciaTiempo, op=MPI.MAX) #Obtiene el tiempo con mayor duracion
+    
+    if(pid==0):
+        print(tiempoMaxTotal)
 
 if __name__ == "__main__":
     main(sys.argv[1:])       # le pasa a main la lista de opciones, los parametros
