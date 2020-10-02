@@ -6,7 +6,7 @@ import sys
 import equations
 import worm
 import card
-
+import sys, getopt
 
 #TODO: Hay que crear listas inversas para encontrar cuales manos abarca un gusano en x posicion. 
 # Las listas inversas son arreglos de indices de la lista completa de manos (la que se lee del archivo)
@@ -86,7 +86,26 @@ def obtenerValoresLineaComandos(argv):
             classes = arg
         elif opt in ("-m", "--M"):
             worms = arg
-    return int(decLuciferin), int(incLuciferin), int(distWorms). int(valIniLuciferin), int(classes), int(worms)
+    return int(decLuciferin), int(incLuciferin), int(distWorms), int(valIniLuciferin), int(classes), int(worms)
+
+def subconjuntoDatos(k, subconjuntoDatos):
+    #subconjuntoDatos.sort()
+    CC=[]
+    contador=0
+    #contador2=0
+    aux = 0
+    while (contador<k):
+
+        max = subconjuntoDatos[0]
+        for index in range(len(subconjuntoDatos)):
+            if (subconjuntoDatos[index]>max and not index in CC):
+                max = subconjuntoDatos
+                aux = index          
+        CC.append(aux)
+        contador+=1
+    
+    return CC
+
 
 def main(argv):
     comm = MPI.COMM_WORLD
