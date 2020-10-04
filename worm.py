@@ -20,12 +20,17 @@ class Worm:
         
         self.dataSet = [] #las cartas que tiene el gusano esto se extrae
         self.intradistance = 0 #sumatoria esto se tiene que calcular por medio de la formuala 8
+        self.totalCartas=0
 
     def getPosition(self):
         return self.position
 
-    def setCards(self, setCards):
+    def setCards(self, setCards, setTotal):
         self.dataSet=setCards
+        self.totalCartas=setTotal
+    
+    def setAdaptation(self, newAdaptation):
+        self.adaptation = newAdaptation
 
     def setIntraDistance(self, sum):
         self.intradistance = sum

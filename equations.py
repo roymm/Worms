@@ -23,10 +23,24 @@ def EQ1(t,rho,gamma):
 def EQ9(t):
     return
 
-"""
+
+def EQ7(k, CC, gusanitos):
+    resultado = 0
+    sumatoriaI=0
+    sumatoriaJ=0
+    for i in range (1, k):
+        for j in range (1,k):
+            sumatoriaJ = sumatoriaJ + (euclidianDistance(gusanitos[CC[i]].position, gusanitos[CC[j]].position)**2)
+        sumatoriaI = sumatoriaI + sumatoriaJ
+    resultado = sumatoriaI
+    return resultado
+
+
+
 def EQ3(j,z):
     sumatoria=0
-    for k in range (EQ2(j)):
-        sumatoria = sumatoria + EQ2(j)*(EQ1(k)-formula1(j))
-    resultado= (formula1(z)-formula1(j))/sumatoria
-"""
+    resultado = EQ2(j)
+    for k in range (resultado):
+        sumatoria = sumatoria + EQ2(j)*(EQ1(k)-EQ1(j))
+    resultado= (EQ1(z)-EQ1(j))/sumatoria
+    return resultado

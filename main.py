@@ -105,9 +105,10 @@ def subconjuntoDatos(k, subconjuntoDatos):
 
         max = subconjuntoDatos[0]
         for index in range(len(subconjuntoDatos)):
-            if (subconjuntoDatos[index]>max and not index in CC):
-                max = subconjuntoDatos
-                aux = index          
+            if (subconjuntoDatos[index]>=max and index not in CC):
+                max = subconjuntoDatos[index]
+                aux = index   
+            max = subconjuntoDatos[0]       
         CC.append(aux)
         contador+=1
     
@@ -129,3 +130,36 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])       # le pasa a main la lista de opciones, los parametros
+
+
+"""MAIN PARA PROBAR LOS GUSANOS
+def main():
+    totalWorms = 50
+    ratio = 0.42
+    contador = 0
+    luciferin = 5
+    k=10
+    gusanitos = []
+    CC=[]
+    #esto tiene que ser una funcion aparte, no en main
+    while (contador<totalWorms):
+        gusanoActual = Worm(luciferin)
+        positions = gusanoActual.getPosition()
+        #print (positions)
+        cards, totalCards = gusanoActual.getCards(positions, ratio)
+        #print(cards)
+        #print (totalCards)
+        gusanoActual.setCards(cards, totalCards)
+        CC.append(totalCards)
+        gusanitos.append(gusanoActual)
+        #intradistance = formula 8
+        contador+=1
+    ccReal = subconjuntoDatos(k, CC)
+    print(ccReal)
+    intraDistacia = EQ7(k, ccReal, gusanitos)
+    #ecuacion6
+    #ecuacion7
+    #hacer gso con el CC obtenido
+
+
+"""
