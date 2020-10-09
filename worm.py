@@ -1,12 +1,20 @@
 import random
 import numpy as np
-
+import itertools
 
 class Worm:
+    luciferin = 0
+    adaptation = 0
+
     def __init__(self, luciferin):
         #EL NIVEL DE LUCIFERINA ES IGUAL A 5,0 PA TODOS
         self.luciferin = luciferin
         self.adaptation = 0 #funcion 9
+        self.dataSet = [] #las cartas que tiene el gusano esto se extrae
+        self.intradistance = 0 #sumatoria esto se tiene que calcular por medio de la formuala 8
+        self.totalCartas=0
+        self.permutations = []
+        #Genera una posicion aleatoria de 10 dimensiones
         posiAux=np.zeros(10)
         contador=0
         while contador<10:
@@ -17,10 +25,6 @@ class Worm:
             posiAux[contador]= position
             contador+=1
         self.position = posiAux #vector con 10 posiciones aleatoria
-        
-        self.dataSet = [] #las cartas que tiene el gusano esto se extrae
-        self.intradistance = 0 #sumatoria esto se tiene que calcular por medio de la formuala 8
-        self.totalCartas=0
 
     def getPosition(self):
         return self.position
@@ -35,8 +39,20 @@ class Worm:
     def setIntraDistance(self, sum):
         self.intradistance = sum
 
-
-
+    #Funcion que toma la propiedad dataSet y crea permutaciones de todas las cartas en el radio del gusano. Estas permutaciones respetan la
+    #posicion original de las cartas encontradas
+    #Retorna None si se encuentra que el gusano no econtro en su radio ninguna carta en alguna posicion
+    def buildPermutations(self):
+        for firstCard in self.dataSet[0]:
+            for secondCard in self.dataSet[1]:
+                for thirdCard in self.dataSet[2]:
+                    for fourthCard in self.dataSet[3]:
+                        for fifthCard in self.dataSet[4]:
+                            permutation = [firstCard,secondCard,thirdCard,fourthCard,fifthCard]
+                            if [] in permutation:
+                                return None
+                            print(permutation)
+                            self.permutations.append(permutation)
 
     def getCards(self, positions, ratio):
         contador=0
