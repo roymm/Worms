@@ -5,7 +5,6 @@ import logging
 import sys
 import equations
 import worm
-import card
 import sys, getopt
 
 #TODO: Hay que crear listas inversas para encontrar cuales manos abarca un gusano en x posicion. 
@@ -66,8 +65,33 @@ def initSetUp():
             testHands.append(arrayLine)
         
         testHands = np.array(testHands)
-        print(indexList[0][0][12])
+        #print(indexList[0][0][12])
 
+#Funcion que toma una lista de listas (la propiedad dataSet de los gusanos) y relaciona cada carta con su posicion 
+# a una mano del archivo poker-hand-training-true.data
+# Recibe una lista de pares [numero de carta, palo] y retorna una lista de enteros (indices del array testHands)
+def searchIndex(permutations):
+    wormIndexList = []
+    for permutation in permutations:
+        position = 0
+        for card in permutation:
+            print(card)
+            numberCard = card[0]
+            rankCard = card[1]
+            possibleIndexList = indexList[position][rankCard][numberCard]
+
+            if not possibleIndexList:   #Si una carta en una posicion dada no tiene ninguna mano en el archivo, se retorna una lista vacia por default
+                return []
+
+            if(position == 0):          #Si es la carta en la primera posicion, se toman esos indices como los iniciales para comparar las otras cartas
+                wormIndexList = possibleIndexList
+            
+            else:
+                for wormIndex in wormIndexList:
+                    if not wormIndex in possibleIndexList: #Se revisan los indices que ya se tienen, si alguno no está en la carta que se está analizando,
+                        wormIndexList.remove(wormIndex)     # se elimina de la lista de posibles indices. Así, al final se va a tener una lista de los indices que se repiten
+
+            position += 1
 #Funcion que toma los valores ingresados por el usuario en la linea de comandos y los verifica
 def obtenerValoresLineaComandos(argv):
     decLuciferin = ""
@@ -115,7 +139,7 @@ def subconjuntoDatos(k, subconjuntoDatos):
     return CC
 
 
-def main(argv):
+"""def main(argv):
     comm = MPI.COMM_WORLD
     tiempoInicial = MPI.Wtime() #Para medir el tiempo pared
     comm.Barrier()
@@ -127,13 +151,11 @@ def main(argv):
     
     if(pid==0):
         print(tiempoMaxTotal)
+"""
 
-if __name__ == "__main__":
-    main(sys.argv[1:])       # le pasa a main la lista de opciones, los parametros
+"""MAIN PARA PROBAR LOS GUSANOS"""
 
-
-"""MAIN PARA PROBAR LOS GUSANOS
-def main():
+def main(argv):
     totalWorms = 50
     ratio = 0.42
     contador = 0
@@ -141,9 +163,10 @@ def main():
     k=10
     gusanitos = []
     CC=[]
+    initSetUp()
     #esto tiene que ser una funcion aparte, no en main
     while (contador<totalWorms):
-        gusanoActual = Worm(luciferin)
+        gusanoActual = worm.Worm(luciferin)
         positions = gusanoActual.getPosition()
         #print (positions)
         cards, totalCards = gusanoActual.getCards(positions, ratio)
@@ -151,15 +174,19 @@ def main():
         #print (totalCards)
         gusanoActual.setCards(cards, totalCards)
         CC.append(totalCards)
+        #print(gusanoActual.dataSet)
         gusanitos.append(gusanoActual)
         #intradistance = formula 8
         contador+=1
+    gusanitos[0].buildPermutations()
+    print(gusanitos[0].position)
+    #searchIndex(gusanitos[0].dataSet)
     ccReal = subconjuntoDatos(k, CC)
-    print(ccReal)
-    intraDistacia = EQ7(k, ccReal, gusanitos)
+    #print(ccReal)
+    intraDistacia = equations.EQ7(k, ccReal, gusanitos)
     #ecuacion6
     #ecuacion7
     #hacer gso con el CC obtenido
 
-
-"""
+if __name__ == "__main__":
+    main(sys.argv[1:])       # le pasa a main la lista de opciones, los parametros"""
