@@ -35,7 +35,11 @@ def EQ7(k, CC, gusanitos):
     resultado = sumatoriaI
     return resultado
 
-
+def EQ8(worm):
+    intraD = 0
+    for permutation in worm.permutations:
+        intraD += euclidianDistance(permutation,worm.position)
+    return intraD
 
 def EQ3(j,z):
     sumatoria=0
