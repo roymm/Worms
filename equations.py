@@ -15,13 +15,57 @@ def euclidianDistance(pointA,pointB):
 #- t: Iteracion?
 #- rho: Constante recibida por consola. Default 0.4
 #- gamma: Constante recibida por consola. Default 0.6
-def EQ1(t,rho,gamma):
-    F = EQ9(t)
-    return (1-rho) * EQ1(t-1,rho,gamma) + gamma * F
 
-#Fucnion que calcula el valor de adaptacion
-def EQ9(t):
-    return
+
+def EQ1(gusano, rho, gamma, resultadoEQ9):
+    F = resultadoEQ9
+    return (1-rho) * gusano.getLuciferin() + gamma * F
+
+def EQ2(listaGusanos, gusanoActual, r, rho, gamma, resultadoEQ9):
+    gusanosVecinos = []
+    resultadoEcuacion1 = EQ1(gusanoActual, rho, gamma, resultadoEQ9)
+    for index in range(len(listaGusanos)):
+        if (gusanoActual != index):
+            distance = euclidianDistance(listaGusanos[index].getPosition(), listaGusanos[gusanoActual].getPosition())
+            resultadoEQ1 = EQ1(index, rho, gamma, resultadoEQ9)
+            if (distance < r and resultadoEQ1 > resultadoEcuacion1):
+                gusanosVecinos.append(index)
+
+    return gusanosVecinos
+
+
+def EQ3(j,z, listaGusanos, rho, gamma, resultadoEQ9):
+    sumatoria=0
+    resultado = EQ2(listaGusanos, j, z, rho, gamma, resultadoEQ9)
+    for k in range in resultado:
+        sumatoria = sumatoria + EQ2(listaGusanos, j, z, rho, gamma, resultadoEQ9)*(EQ1(k, rho, gamma, resultadoEQ9)-EQ1(j, rho, gamma, resultadoEQ9))
+    resultado= (EQ1(z, rho, gamma, resultadoEQ9)-EQ1(j, rho, gamma, resultadoEQ9))/sumatoria
+    return resultado
+
+
+def EQ4(s, gusanitos, gusanoActual, gusanoVecino):
+    contador = 0
+    newPositions = np.zeros(10)
+    posicionAnt = [gusanitos[gusanoVecino].position[contador]]
+    posicionAnt2 = [gusanitos[gusanoActual].position[contador]]
+    while (contador < 10):
+        resultadoDivision = 0
+        resultadoResta = gusanitos[gusanoVecino].position[contador] - gusanitos[gusanoActual].position[contador]
+        distancia = euclidianDistance(posicionAnt, posicionAnt2)
+        resultadoDivision = s * (resultadoResta/distancia)
+        newPositions[contador] = gusanitos[gusanoActual].position[contador] + resultadoDivision
+        contador+=1
+    gusanitos[gusanoActual].setPosition(newPositions)
+
+def EQ6(listaCentroides, k):
+    sumFinal = 0
+    sum = 0 
+    for index in range (k):
+        for i in range (len(listaCentroides[index].getPermutations())):
+            permutation = listaCentroides[index].getPermutations()
+            sum = sum + (euclidianDistance(listaCentroides[index].getPosition(), permutation[i] ))
+        sumFinal = sumFinal + sum
+    return sumFinal
 
 
 def EQ7(k, CC, gusanitos):
@@ -41,10 +85,3 @@ def EQ8(worm):
         intraD += euclidianDistance(permutation,worm.position)
     return intraD
 
-def EQ3(j,z):
-    sumatoria=0
-    resultado = EQ2(j)
-    for k in range (resultado):
-        sumatoria = sumatoria + EQ2(j)*(EQ1(k)-EQ1(j))
-    resultado= (EQ1(z)-EQ1(j))/sumatoria
-    return resultado
