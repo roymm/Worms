@@ -104,11 +104,11 @@ def initSetUp():
         indexList.append([])
 
             #Agrego los 4 palos
-        for j in range(5):
+        for j in range(4):
             indexList[i].append([])
 
                 #Agrego las lista inversa correspondiente a cada carta
-            for k in range(14):
+            for k in range(13):
                 indexList[i][j].append([])
 
     numLine = 0
@@ -116,18 +116,18 @@ def initSetUp():
     for line in open('poker-hand-training-true.data'):
         arrayLine = np.fromstring(line, dtype=int, sep=',')
         position = 0
-            #Leo el palo 
+
         for i in range(0,len(arrayLine)-1,2):
-            rank = arrayLine[i]
-            card = arrayLine[i+1]
-            indexList[position][rank-1][card-1].append(numLine)
+            rank = arrayLine[i] -1
+            card = arrayLine[i+1] -1
+            indexList[position][rank][card].append(numLine)
             position += 1
                 
         numLine += 1
         testHands.append(arrayLine)
         
     testHands = np.array(testHands)
-        #print(indexList[0][0][12])
+    #print(indexList[0][1][10])
     return testHands, indexList #LES HICE RETURN PORQUE CON EL GLOBAL NO ME CORRIA
 
 
@@ -136,34 +136,52 @@ def initSetUp():
 # Recibe una lista de pares [numero de carta, palo] y retorna una lista de enteros (indices del array testHands)
 def searchIndex(permutations, indexList):
     wormIndexList = []
-    totalHands = 0
-    index = True
+    print(str(len(permutations)))
     for permutation in permutations:
-        position = 0
+        position = 0    #Numero de carta siendo analizada
+        auxList = []    #Se almacenan los posibles indices para una permutacion en especifico
+        print("Empieza la permutacion : " + str(permutation))
+        permutation = [[9,0],[10,0],[12,0],[11,0],[0,0]]
         for card in permutation:
             #print(card)
             numberCard = card[0]
             rankCard = card[1]
-            possibleIndexList = indexList[position][rankCard][numberCard]
+            try:
+                possibleIndexList = indexList[position][rankCard][numberCard]
+            except:
+                print("ERROR en position: " + str(position) + " rank " + str(rankCard) + " card " + str(numberCard))
 
             if not possibleIndexList:   #Si una carta en una posicion dada no tiene ninguna mano en el archivo, se retorna una lista vacia por default
-                index = False
-                return []
+                auxList = []
+                print("No se encuentran indices para la carta "+ str(card) + " en la posicion " +str(position))
+                break
 
             if(position == 0):          #Si es la carta en la primera posicion, se toman esos indices como los iniciales para comparar las otras cartas
-                wormIndexList = possibleIndexList
-                #totalHands+=1
-            
+                auxList = possibleIndexList
+                #print("Se toman los indices " + str(possibleIndexList) + " de la primera carta " + str(card))
+
             else:
-                for wormIndex in wormIndexList:
-                    if not wormIndex not in possibleIndexList: #Se revisan los indices que ya se tienen, si alguno no está en la carta que se está analizando,
-                        index = False
-                        wormIndexList.remove(wormIndex)     # se elimina de la lista de posibles indices. Así, al final se va a tener una lista de los indices que se repiten
+                largo = len(auxList)
+                i=0
+                while i < largo:
+                    wormIndex = auxList[i]
+                    if not wormIndex in possibleIndexList: #Se revisan los indices que ya se tienen, si alguno no está en la carta que se está analizando
+                        #print("Quito los indices: " + str(wormIndex))
+                        auxList.remove(wormIndex)     # se elimina de la lista de posibles indices. Así, al final se va a tener una lista de los indices que se repiten
+                        largo -= 1
+                        i -= 1
+                        #print(str(wormIndex) + " no esta en " + str(possibleIndexList))
+                    #else:
+                        #print(str(wormIndex) + " esta en " + str(auxList))
+
+                    i += 1
             position += 1
-        if (index):
-            totalHands+=1
-        index = True
-    #print (wormIndexList)
+        
+        if len(auxList) == 1:        #Si se encontró un indice, se guarda junto a su permutacion
+            wormIndexList.append((auxList,permutation))
+            print (str(auxList) + " : " + str(permutation))
+    
+    #print("Termino de buscar indices")
     return wormIndexList
 
 
@@ -186,7 +204,7 @@ def createWorms(k, luciferin, ratio, indexList):
         #print(permutations)
 
         
-        totalHands = searchIndex(permutations, indexList) #no se si los indices que devuelve son igual a la cantidad de manos que tiene el gusano con respecto al archivo de manos
+        #totalHands = searchIndex(permutations, indexList) #no se si los indices que devuelve son igual a la cantidad de manos que tiene el gusano con respecto al archivo de manos
         
         actualWorm.setTotalHands(totalHands, len(totalHands)) 
 
@@ -197,8 +215,10 @@ def createWorms(k, luciferin, ratio, indexList):
         actualWorm.setIntraDistance(EQ8(actualWorm))
         #intradistance = formula 8
         counter+=1
+    
+    searchIndex(wormList[0].permutations,indexList)
     CC=[]
-    CC = subconjuntoDatos(k, totalHands, wormList, ratio) #esto tengo que perfeccionarlo aun
+    #CC = subconjuntoDatos(k, totalHands, wormList, ratio) #esto tengo que perfeccionarlo aun
     return wormList, CC
 
 
@@ -236,8 +256,6 @@ def distanceCentroids(wormList, CC, actualWorm, ratio): #esta funcion aun no sir
             if (distance>ratio):
                 rightDistance = True
     return rightDistance
-
-
 
 
 #hacer el gso principal
@@ -281,6 +299,10 @@ def main():
     s = 0.03
     testHands, indexList = initSetUp()
     wormList, CC = createWorms(k, luciferin, ratio, indexList)
+    #wormList[0].buildPermutations()
+    #test = searchIndex(wormList[0].permutations,indexList) 
+    #print(wormList[0].permutations)
+    #print(test)
     #SSE = EQ6(CC, k)
     #InterDist = EQ7(k, CC, wormList)
     
