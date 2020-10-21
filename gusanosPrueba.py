@@ -24,6 +24,7 @@ class Worm:
         self.total=0 #total de numeros de permutaciones que va a tener el gusano
         self.totalHands = [] #
         self.totalPermutationsHands = 0
+        self.identificator = 0
 
     def getPosition(self):
         return self.position
@@ -49,6 +50,9 @@ class Worm:
 
     def getTotalHands(self):
         return self.total
+
+    def setIdentificator(self, newIdentificator):
+        self.identificator = newIdentificator
 
     def setTotalHands(self, newHands, newTotal):
         self.totalHands = newHands
@@ -89,66 +93,23 @@ class Worm:
     #Hacer un set para las cartas y la intra distancia
     #hacer un get pa las posiciones
     def getCards(self, ratio):
-        contador=0
+        contador = 0
         index = 0
-        total = 0
         cardSet = []
-        cartita= []
-        while (contador<5):
-            card = [0,0]
-            
-            cardSet= []
-            resultado1 = (self.position[index] - int(self.position[index]))
-            resultado1=round(resultado1, 2)
-
-            if (resultado1 <= ratio):
-                card[0]=(int(self.position[index])+1)
-                card[1]=int(self.position[index+1])
-                cardSet.append(card)
-                #print(card)
-                total+=1
-                
-            card = [0,0]
-            resultado1 = int(self.position[index] + ratio)
-            #resultado1=round(resultado1, 2)
-            #print(self.position[index])
-            #print(int(self.position[index]))
-            #print(resultado1)
-            if (resultado1 > int(self.position[index])):
-                card[0]=int((self.position[index])+2)
-                card[1]=int(self.position[index+1])
-                cardSet.append(card)
-                total+=1
-                #print(self.position[index])
-                #print(int(self.position[index]))
-                #print(resultado1)
-            index+=1
-            card = [0,0]
-            resultado1 = self.position[index] - int(self.position[index])
-            resultado1=round(resultado1, 2)
-            if (resultado1 <= ratio and int((self.position[index])-1)>0):
-                card[0]=int((self.position[index-1])+1)
-                card[1]=int((self.position[index])-1)
-                cardSet.append(card)
-                total+=1
-                #print(card)
-                #print(self.position[index])
-                #print(int(self.position[index]))
-                #print(resultado1)
-            resultado1 = int(self.position[index] + ratio)
-            #resultado1=round(resultado1, 2)
-            card = [0,0]
-            if (resultado1 > int(self.position[index]) and int((self.position[index])-1)<5):
-                card[0]=int(self.position[index-1])+1
-                card[1]=int(self.position[index])+1
-                cardSet.append(card)
-                total+=1
-            index+=1
-            contador+=1
-            #print(contador)
-            cartita.append(cardSet)
-        #print(cartita)
-        #print(total)
-        return cartita
-
-
+        #finalCardSet = []
+        while (contador < 5):
+            cardSet = []
+            limitMax1 = int(self.position[index] + ratio)
+            limiteMin1 = int(self.position[index] - ratio)
+            limitMax2 = int(self.position[index+1] + ratio)
+            limiteMin2 = int(self.position[index+1] - ratio)
+            for i in range (4):
+                for j in range (13):
+                    if (j <= limitMax1 and j >= 0 and j >= limiteMin1 and (i!=limiteMin2 or j != limiteMin1) ):
+                        if (i <= limitMax2 and i >= 0 and i >= limiteMin2 and (i!=limitMax2 or j != limitMax1) ):
+                            card = [j,i]
+                            if (card not in cardSet):
+                                cardSet.append(card)
+            index += 2
+            contador +=1
+            self.dataSet.append(cardSet)
