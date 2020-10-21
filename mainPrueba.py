@@ -185,41 +185,57 @@ def searchIndex(permutations, indexList):
     return wormIndexList
 
 
-#CREA EL GUSANO
 def createWorms(k, luciferin, ratio, indexList):
     wormList = []
     totalHands = []
+    CC = []
     #esto tiene que ser una funcion aparte, no en main
     counter = 0
-    totalWorms = 5 #k*25010
+    totalWorms = 10 #k*25010
+    numAux = 0
+    intraDistances = []
     while (counter < totalWorms):
         actualWorm = Worm(luciferin)
-        cards = actualWorm.getCards(ratio) #obtiene las cartas
+        actualWorm.getCards(ratio) #obtiene las cartas
         #print(cards)
         #print (totalCards)
-        actualWorm.setCards(cards) 
+        #actualWorm.setCards(cards) 
         #print(cards)
         actualWorm.buildPermutations() #le hace todas las permutaciones
         permutations = actualWorm.getPermutations()
         #print(permutations)
-
-        
+        #print(permutations)
+        #print(indexList)
+       #    ESTO TIENE QUE IR EN OTRO WHILE OJO print(searchIndex(permutations, indexList))
         #totalHands = searchIndex(permutations, indexList) #no se si los indices que devuelve son igual a la cantidad de manos que tiene el gusano con respecto al archivo de manos
-        
-        actualWorm.setTotalHands(totalHands, len(totalHands)) 
-
-        wormList.append(actualWorm)
-
+      
+        wormIndexList, handPermutations = searchIndex(permutations,indexList)
+        #print(wormIndexList)
+        if (wormIndexList!=[]):
+            #print(handPermutations)
+            #print("2")
+            actualWorm.setIdentificator(numAux)
+            numAux += 1
+            actualWorm.setTotalHands(handPermutations, len(handPermutations))
+            wormList.append(actualWorm)
+            #gus= [actualWorm.getTotalHands(), actualWorm]
+            listaAux = [actualWorm.total, actualWorm]
+            totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
+            intraDistance= EQ8(actualWorm)
+            actualWorm.setIntraDistance(intraDistance)
+            intraDistances.append(intraDistance)
+        #actualWorm.setTotalHands(totalHands, len(totalHands)) 
         #newIntraDistance=EQ8(actualWorm)
-        totalHands.append(actualWorm.getTotalHands()) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
-        actualWorm.setIntraDistance(EQ8(actualWorm))
-        #intradistance = formula 8
+        #)
+        #intradistance = formula 8"""
+
         counter+=1
     
-    searchIndex(wormList[0].permutations,indexList)
-    CC=[]
-    #CC = subconjuntoDatos(k, totalHands, wormList, ratio) #esto tengo que perfeccionarlo aun
-    return wormList, CC
+    #searchIndex(wormList[0].permutations,indexList)
+    #CC=[]
+    #CC = subconjuntoDatos(k, totalHands, ratio) #esto tengo que perfeccionarlo aun
+    #print(wormList)
+    return wormList, CC, intraDistances
 
 
 
