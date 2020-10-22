@@ -12,92 +12,120 @@ def euclidianDistance(pointA,pointB):
 
     return math.sqrt(summation)
 
-def EQ1(gusano, rho, gamma, resultadoEQ9):
-    F = resultadoEQ9
-    return (1-rho) * gusano.getLuciferin() + gamma * F
+def EQ1(worm, rho, gamma, resultEQ9):
+    F = resultEQ9
+    return ((1-rho) * worm.luciferin) + (gamma * F)
 
 
-def EQ2(listaGusanos, gusanoActual, r, rho, gamma, resultadoEQ9):
-    gusanosVecinos = []
-    resultadoEcuacion1 = EQ1(gusanoActual, rho, gamma, resultadoEQ9)
-    for index in range(len(listaGusanos)):
-        if (gusanoActual != index):
-            distance = euclidianDistance(listaGusanos[index].getPosition(), listaGusanos[gusanoActual].getPosition())
-            resultadoEQ1 = EQ1(index, rho, gamma, resultadoEQ9)
-            if (distance < r and resultadoEQ1 > resultadoEcuacion1):
-                gusanosVecinos.append(index)
-
-    return gusanosVecinos
-
-
-def EQ3(j,z, listaGusanos, rho, gamma, resultadoEQ9):
-    sumatoria=0
-    resultado = EQ2(listaGusanos, j, z, rho, gamma, resultadoEQ9)
-    for k in range in resultado:
-        sumatoria = sumatoria + EQ2(listaGusanos, j, z, rho, gamma, resultadoEQ9)*(EQ1(k, rho, gamma, resultadoEQ9)-EQ1(j, rho, gamma, resultadoEQ9))
-    resultado= (EQ1(z, rho, gamma, resultadoEQ9)-EQ1(j, rho, gamma, resultadoEQ9))/sumatoria
-    return resultado
+def EQ2(wormList, actualWorm, ratio):
+    neighborsSet = []
+    for index in range(len(wormList)):
+        distance = euclidianDistance(wormList[index].position, actualWorm.position)
+        #print(wormList[index].luciferin )
+        #print(actualWorm.luciferin)
+        if (distance < ratio and wormList[index].luciferin > actualWorm.luciferin):
+            neighborsSet.append(wormList[index] )
+            #print(distance)
+    
+    return neighborsSet
 
 
-def EQ4(s, gusanitos, gusanoActual, gusanoVecino):
+def EQ3(actualWorm, wormList, neighborsSet):
+    sum= 0
+    maxProbability = 0
+    selectedWorm = actualWorm
+    #selectedWorm = neighborsSet[0]
+    for k in range (len(neighborsSet)):
+        resultDifferece = neighborsSet[k].getLuciferin() - actualWorm.getLuciferin()
+        for i in range (len(neighborsSet)):
+            result = neighborsSet[i].getLuciferin() - actualWorm.getLuciferin()
+            sum = sum + result
+        finalResult = resultDifferece/sum
+        if (finalResult > maxProbability):
+            maxProbability = finalResult
+            selectedWorm = neighborsSet[k]
+    return selectedWorm
+
+
+def EQ4(s, actualWorm, bestNeighbor):
     contador = 0
     newPositions = np.zeros(10)
-    posicionAnt = [gusanitos[gusanoVecino].position[contador]]
-    posicionAnt2 = [gusanitos[gusanoActual].position[contador]]
+    distancia = euclidianDistance(actualWorm.position, bestNeighbor.position)
     while (contador < 10):
-        resultadoDivision = 0
-        resultadoResta = gusanitos[gusanoVecino].position[contador] - gusanitos[gusanoActual].position[contador]
-        distancia = euclidianDistance(posicionAnt, posicionAnt2)
+        resultadoResta = bestNeighbor.position[contador]- actualWorm.position[contador]
+        #print(resultadoResta)
         resultadoDivision = s * (resultadoResta/distancia)
-        newPositions[contador] = gusanitos[gusanoActual].position[contador] + resultadoDivision
+        newPositions[contador] =actualWorm.position[contador]+ resultadoDivision
         contador+=1
-    gusanitos[gusanoActual].setPosition(newPositions)
+    #print(newPositions)
+    return newPositions
 
 
-def EQ6(listaCentroides, k):
-    sumFinal = 0
+def EQ6(centroidsList, k):
+    sumCentroid = 0
     sum = 0 
-    for index in range (k):
-        for i in range (len(listaCentroides[index].getPermutations())):
-            permutation = listaCentroides[index].getPermutations()
-            sum = sum + (euclidianDistance(listaCentroides[index].getPosition(), permutation[i] ))
-        sumFinal = sumFinal + sum
-    return sumFinal
+    finalSum = 0
+    #print(centroidsList)
+    #print(centroidsList[0].totalHands)
+    for index in range (len(centroidsList)):
+        for permutation in (centroidsList[index].totalHands):
+            x = 0
+            for card in permutation:
+                posicion = []
+                #permutation = centroidsList[index].totalHands
+                posicion.append(centroidsList[index].position[x])
+                x += 1
+                posicion.append(centroidsList[index].position[x])
+                x += 1
+
+                sum = sum + ((euclidianDistance(posicion, card))**2)
+            sumCentroid= sumCentroid + sum
+        finalSum = finalSum + sumCentroid
+        
+    
+    return finalSum
 
 
-def EQ7(k, CC, gusanitos):
-    resultado = 0
-    sumatoriaI=0
-    sumatoriaJ=0
-    for i in range (1, k):
-        for j in range (1,k):
-            sumatoriaJ = sumatoriaJ + (euclidianDistance(gusanitos[CC[i]].position, gusanitos[CC[j]].position)**2)
-        sumatoriaI = sumatoriaI + sumatoriaJ
-    resultado = sumatoriaI
-    return resultado
+def EQ7(k, centroidsList, wormList):
+    result = 0
+    sumI=0
+    sumJ=0
+    for i in range (len(centroidsList)):
+        for j in range (len(centroidsList)):
+            sumJ = sumJ + (euclidianDistance(centroidsList[i].position, centroidsList[j].position)**2)
+        sumI = sumI + sumJ
+    result = sumI
+    return result
 
 def EQ8(worm):
     intraD = 0
-    for permutation in worm.permutationsAux:
-        intraD += euclidianDistance(permutation,worm.position)
-    return intraD
+    finalIntraD = 0
+    for permutation in worm.totalHands:
+        x = 0
+        for card in permutation:
+            posicion = []
+            #permutation = centroidsList[index].totalHands
+            posicion.append(worm.position[x])
+            x += 1
+            posicion.append(worm.position[x])
+            x += 1
+            intraD += euclidianDistance(card, posicion)
+        finalIntraD += finalIntraD + intraD
+    return finalIntraD
 
-def EQ9(k, n, total, resultado6, resultado7):
-    resultado =0
-
-    return resultado
+def EQ9(n, resultEQ6, resultEQ8, actualWorm, intraDistances):
+    result1 = (1/n)*actualWorm.total
+    resultMultiplication= resultEQ6 * (resultEQ8/max(intraDistances))
+    result = result1 / resultMultiplication
+    print(result)
+    return result
 
 
 #Funcion que crea los gusanos iniciales y hace otras cosas del inicio que todavia no sabemos
 def initSetUp():
-    #global testHands
-    #global allCards
-    #global indexList 
-    #Creacion de universo con una matriz de 13 (cartas) * 4 (palos) * 5 cartas en la mano
-    #if(pid == 0):
     testHands = []
     indexList = []
-    allCards = np.resize(np.arange(13),(5,4,13))
+    #allCards = np.resize(np.arange(13),(5,4,13))
         
         #Agrega las 5 posiciones
     for i in range (5):
@@ -128,7 +156,7 @@ def initSetUp():
         
     testHands = np.array(testHands)
     #print(indexList[0][1][10])
-    return testHands, indexList #LES HICE RETURN PORQUE CON EL GLOBAL NO ME CORRIA
+    return indexList #LES HICE RETURN PORQUE CON EL GLOBAL NO ME CORRIA
 
 
 #Funcion que toma una lista de listas (la propiedad dataSet de los gusanos) y relaciona cada carta con su posicion 
@@ -136,16 +164,40 @@ def initSetUp():
 # Recibe una lista de pares [numero de carta, palo] y retorna una lista de enteros (indices del array testHands)
 def searchIndex(permutations, indexList):
     wormIndexList = []
-    print(str(len(permutations)))
+    handPermutations = []
+    #posibleIndexList = []
+    #print(permutations)
+    #print(str(len(permutations)))
+    #permutations = [ [[9,0],[10,0],[12,0],[11,0],[0,0]],  [[10,1],[12,1],[9,1],[11,1],[0,1]]]
+    """permutations = [[[5, 0], [10, 1], [8, 0], [1, 0], [3, 1]], [[5, 0], [10, 1], [8, 0], [1, 0], [4, 1]], [[5, 0], [10, 1], [8, 0], [1, 0], [2, 2]], [[5, 0], [10, 1], [8, 0], [1, 0], [3, 2]], [[5, 0], [10, 1], [8, 0], [1, 0], [4, 2]], [[5, 0], [10, 1], [8, 0], [1, 0], [2, 3]], [[5, 0], [10, 1], [8, 0], [1, 0], [3, 3]], [[5, 0], [10, 1], [8, 0], [2, 0], [3, 1]], [[5, 0], [10, 1], [8, 0], [2, 0], [4, 1]], [[5, 0], [10, 
+1], [8, 0], [2, 0], [2, 2]], [[5, 0], [10, 1], [8, 0], [2, 0], [3, 2]], [[5, 0], [10, 1], [8, 0], [2, 0], [4, 2]], [[5, 0], [10, 1], [8, 0], [2, 0], [2, 3]], [[5, 0], [10, 1], [8, 0], [2, 0], [3, 3]], 
+[[5, 0], [10, 1], [8, 0], [0, 1], [3, 1]], [[5, 0], [10, 1], [8, 0], [0, 1], [4, 1]], [[5, 0], [10, 1], [8, 0], [0, 1], [2, 2]], [[5, 0], [10, 1], [8, 0], [0, 1], [3, 2]], [[5, 0], [10, 1], [8, 0], [0, 1], [4, 2]], [[5, 0], [10, 1], [8, 0], [0, 1], [2, 3]], [[5, 0], [10, 1], [8, 0], [0, 1], [3, 3]], [[5, 0], [10, 1], [8, 0], [1, 1], [3, 1]], [[5, 0], [10, 1], [8, 0], [1, 1], [4, 1]], [[5, 0], [10, 1], [8, 0], [1, 1], [2, 2]], [[5, 0], [10, 1], [8, 0], [1, 1], [3, 2]], [[5, 0], [10, 1], [8, 0], [1, 1], [4, 2]], [[5, 0], [10, 1], [8, 0], [1, 1], [2, 3]], [[5, 0], [10, 1], [8, 0], [1, 1], [3, 3]], [[5, 0], [10, 1], [8, 0], [2, 1], [3, 1]], [[5, 0], [10, 1], [8, 0], [2, 1], [4, 1]], [[5, 0], [10, 1], [8, 0], [2, 1], [2, 2]], [[5, 0], [10, 1], [8, 0], [2, 1], [3, 2]], [[5, 0], [10, 1], [8, 0], [2, 
+1], [4, 2]], [[5, 0], [10, 1], [8, 0], [2, 1], [2, 3]], [[5, 0], [10, 1], [8, 0], [2, 1], [3, 3]], [[5, 0], [10, 1], [8, 0], [0, 2], [3, 1]], [[5, 0], [10, 1], [8, 0], [0, 2], [4, 1]], [[5, 0], [10, 1], [8, 0], [0, 2], [2, 2]], [[5, 0], [10, 1], [8, 0], [0, 2], [3, 2]], [[5, 0], [10, 1], [8, 0], [0, 2], [4, 2]], [[5, 0], [10, 1], [8, 0], [0, 2], [2, 3]], [[5, 0], [10, 1], [8, 0], [0, 2], [3, 3]], [[5, 0], [10, 1], [8, 0], [1, 2], [3, 1]], [[5, 0], [10, 1], [8, 0], [1, 2], [4, 1]], [[5, 0], [10, 1], [8, 0], [1, 2], [2, 2]], [[5, 0], [10, 1], [8, 0], [1, 2], [3, 2]], [[5, 0], [10, 1], [8, 0], [1, 2], [4, 2]], [[5, 0], [10, 1], [8, 0], [1, 2], [2, 3]], [[5, 0], [10, 1], [8, 0], [1, 2], [3, 3]], [[5, 0], [10, 1], [7, 1], [1, 0], [3, 1]], [[5, 0], [10, 1], [7, 1], [1, 0], [4, 1]], [[5, 0], [10, 1], [7, 1], [1, 0], [2, 2]], [[5, 0], [10, 1], [7, 1], [1, 0], [3, 2]], [[5, 0], [10, 1], [7, 1], [1, 0], [4, 2]], [[5, 0], [10, 1], [7, 1], [1, 0], [2, 3]], [[5, 0], [10, 1], [7, 1], [1, 0], [3, 3]], [[5, 0], [10, 1], [7, 1], [2, 0], [3, 1]], [[5, 0], [10, 1], [7, 1], [2, 0], [4, 1]], [[5, 0], [10, 1], [7, 1], [2, 0], [2, 2]], [[5, 0], [10, 1], [7, 1], [2, 0], [3, 2]], [[5, 0], [10, 1], [7, 1], [2, 0], [4, 2]], [[5, 0], [10, 1], [7, 1], [2, 0], [2, 3]], [[5, 0], [10, 1], [7, 1], [2, 0], [3, 3]], [[5, 0], [10, 1], [7, 1], [0, 1], [3, 1]], [[5, 0], [10, 1], [7, 1], [0, 1], [4, 1]], [[5, 0], [10, 1], 
+[7, 1], [0, 1], [2, 2]], [[5, 0], [10, 1], [7, 1], [0, 1], [3, 2]], [[5, 0], [10, 1], [7, 1], [0, 1], [4, 2]], [[5, 0], [10, 1], [7, 1], [0, 1], [2, 3]], [[5, 0], [10, 1], [7, 1], [0, 1], [3, 3]], [[5, 0], [10, 1], [7, 1], [1, 1], [3, 1]], [[5, 0], [10, 1], [7, 1], [1, 1], [4, 1]], [[5, 0], [10, 1], [7, 1], [1, 1], [2, 2]], [[5, 0], [10, 1], [7, 1], [1, 1], [3, 2]], [[5, 0], [10, 1], [7, 1], [1, 1], [4, 2]], [[5, 0], [10, 1], [7, 1], [1, 1], [2, 3]], [[5, 0], [10, 1], [7, 1], [1, 1], [3, 3]], [[5, 0], [10, 1], [7, 1], [2, 1], [3, 1]], [[5, 0], [10, 1], [7, 1], [2, 1], [4, 1]], [[5, 0], [10, 1], [7, 1], [2, 1], [2, 2]], [[5, 0], [10, 1], [7, 1], [2, 1], [3, 2]], [[5, 0], [10, 1], [7, 1], [2, 1], [4, 2]], [[5, 0], [10, 1], [7, 1], [2, 1], [2, 3]], [[5, 0], [10, 1], [7, 1], [2, 1], [3, 3]], [[5, 
+0], [10, 1], [7, 1], [0, 2], [3, 1]], [[5, 0], [10, 1], [7, 1], [0, 2], [4, 1]], [[5, 0], [10, 1], [7, 1], [0, 2], [2, 2]], [[5, 0], [10, 1], [7, 1], [0, 2], [3, 2]], [[5, 0], [10, 1], [7, 1], [0, 2], 
+[4, 2]], [[5, 0], [10, 1], [7, 1], [0, 2], [2, 3]], [[5, 0], [10, 1], [7, 1], [0, 2], [3, 3]], [[5, 0], [10, 1], [7, 1], [1, 2], [3, 1]], [[5, 0], [10, 1], [7, 1], [1, 2], [4, 1]], [[5, 0], [10, 1], [7, 1], [1, 2], [2, 2]], [[5, 0], [10, 1], [7, 1], [1, 2], [3, 2]], [[5, 0], [10, 1], [7, 1], [1, 2], [4, 2]], [[5, 0], [10, 1], [7, 1], [1, 2], [2, 3]], [[5, 0], [10, 1], [7, 1], [1, 2], [3, 3]], [[5, 0], [10, 1], [8, 1], [1, 0], [3, 1]], [[5, 0], [10, 1], [8, 1], [1, 0], [4, 1]], [[5, 0], [10, 1], [8, 1], [1, 0], [2, 2]], [[5, 0], [10, 1], [8, 1], [1, 0], [3, 2]], [[5, 0], [10, 1], [8, 1], [1, 0], [4, 2]], [[5, 0], [10, 1], [8, 1], [1, 0], [2, 3]], [[5, 0], [10, 1], [8, 1], [1, 0], [3, 3]], [[5, 0], [10, 1], [8, 1], [2, 0], [3, 1]], [[5, 0], [10, 1], [8, 1], [2, 0], [4, 1]], [[5, 0], [10, 1], [8, 1], [2, 0], [2, 2]], [[5, 0], [10, 1], [8, 1], [2, 0], [3, 2]], [[5, 0], [10, 1], [8, 1], [2, 0], [4, 2]], [[5, 0], [10, 1], [8, 1], [2, 0], [2, 3]], [[5, 0], [10, 1], [8, 1], [2, 0], [3, 3]], [[5, 0], [10, 1], [8, 1], [0, 1], [3, 1]], [[5, 0], [10, 1], [8, 1], [0, 1], [4, 1]], [[5, 0], [10, 1], [8, 1], [0, 1], [2, 2]], [[5, 0], [10, 1], [8, 1], [0, 1], [3, 2]], [[5, 0], [10, 1], [8, 1], [0, 1], [4, 2]], [[5, 0], [10, 1], [8, 1], [0, 1], [2, 3]], [[5, 0], [10, 1], [8, 1], [0, 1], [3, 3]], [[5, 0], [10, 1], [8, 1], [1, 1], [3, 1]], [[5, 0], [10, 1], [8, 1], [1, 1], [4, 1]], [[5, 0], [10, 1], [8, 
+1], [1, 1], [2, 2]], [[5, 0], [10, 1], [8, 1], [1, 1], [3, 2]], [[5, 0], [10, 1], [8, 1], [1, 1], [4, 2]], [[5, 0], [10, 1], [8, 1], [1, 1], [2, 3]], [[5, 0], [10, 1], [8, 1], [1, 1], [3, 3]], [[5, 0], [10, 1], [8, 1], [2, 1], [3, 1]], [[5, 0], [10, 1], [8, 1], [2, 1], [4, 1]], [[5, 0], [10, 1], [8, 1], [2, 1], [2, 2]], [[5, 0], [10, 1], [8, 1], [2, 1], [3, 2]], [[5, 0], [10, 1], [8, 1], [2, 1], [4, 2]], [[5, 0], [10, 1], [8, 1], [2, 1], [2, 3]], [[5, 0], [10, 1], [8, 1], [2, 1], [3, 3]], [[5, 0], [10, 1], [8, 1], [0, 2], [3, 1]], [[5, 0], [10, 1], [8, 1], [0, 2], [4, 1]], [[5, 0], [10, 1], [8, 1], [0, 2], [2, 2]], [[5, 0], [10, 1], [8, 1], [0, 2], [3, 2]], [[5, 0], [10, 1], [8, 1], [0, 2], [4, 2]], [[5, 0], [10, 1], [8, 1], [0, 2], [2, 3]], [[5, 0], [10, 1], [8, 1], [0, 2], [3, 3]], [[5, 0], 
+[10, 1], [8, 1], [1, 2], [3, 1]], [[5, 0], [10, 1], [8, 1], [1, 2], [4, 1]], [[5, 0], [10, 1], [8, 1], [1, 2], [2, 2]], [[5, 0], [10, 1], [8, 1], [1, 2], [3, 2]], [[5, 0], [10, 1], [8, 1], [1, 2], [4, 
+2]], [[5, 0], [10, 1], [8, 1], [1, 2], [2, 3]], [[5, 0], [10, 1], [8, 1], [1, 2], [3, 3]], [[5, 0], [10, 1], [7, 2], [1, 0], [3, 1]], [[5, 0], [10, 1], [7, 2], [1, 0], [4, 1]], [[5, 0], [10, 1], [7, 2], [1, 0], [2, 2]], [[5, 0], [10, 1], [7, 2], [1, 0], [3, 2]], [[5, 0], [10, 1], [7, 2], [1, 0], [4, 2]], [[5, 0], [10, 1], [7, 2], [1, 0], [2, 3]], [[5, 0], [10, 1], [7, 2], [1, 0], [3, 3]], [[5, 0], [10, 1], [7, 2], [2, 0], [3, 1]], [[5, 0], [10, 1], [7, 2], [2, 0], [4, 1]], [[5, 0], [10, 1], [7, 2], [2, 0], [2, 2]], [[5, 0], [10, 1], [7, 2], [2, 0], [3, 2]], [[5, 0], [10, 1], [7, 2], [2, 0], [4, 2]], [[5, 0], [10, 1], [7, 2], [2, 0], [2, 3]], [[5, 0], [10, 1], [7, 2], [2, 0], [3, 3]], [[5, 0], [10, 1], [7, 2], [0, 1], [3, 1]], [[5, 0], [10, 1], [7, 2], [0, 1], [4, 1]], [[5, 0], [10, 1], [7, 2], [0, 1], [2, 2]], [[5, 0], [10, 1], [7, 2], [0, 1], [3, 2]], [[5, 0], [10, 1], [7, 2], [0, 1], [4, 2]], [[5, 0], [10, 1], [7, 2], [0, 1], [2, 3]], [[5, 0], [10, 1], [7, 2], [0, 1], [3, 3]], [[5, 0], [10, 1], [7, 2], [1, 1], [3, 1]], [[5, 0], [10, 1], [7, 2], [1, 1], [4, 1]], [[5, 0], [10, 1], [7, 2], [1, 1], [2, 2]], [[5, 0], [10, 1], [7, 2], [1, 1], [3, 2]], [[5, 0], [10, 1], [7, 2], [1, 1], [4, 2]], [[5, 0], [10, 1], [7, 2], [1, 1], [2, 3]], [[5, 0], [10, 1], [7, 2], [1, 1], [3, 3]], [[5, 0], [10, 1], [7, 2], [2, 1], [3, 1]], [[5, 0], [10, 1], [7, 2], [2, 1], [4, 1]], [[5, 0], [10, 1], [7, 2], 
+[2, 1], [2, 2]], [[5, 0], [10, 1], [7, 2], [2, 1], [3, 2]], [[5, 0], [10, 1], [7, 2], [2, 1], [4, 2]], [[5, 0], [10, 1], [7, 2], [2, 1], [2, 3]], [[5, 0], [10, 1], [7, 2], [2, 1], [3, 3]], [[5, 0], [10, 1], [7, 2], [0, 2], [3, 1]], [[5, 0], [10, 1], [7, 2], [0, 2], [4, 1]], [[5, 0], [10, 1], [7, 2], [0, 2], [2, 2]], [[5, 0], [10, 1], [7, 2], [0, 2], [3, 2]], [[5, 0], [10, 1], [7, 2], [0, 2], [4, 2]], [[5, 0], [10, 1], [7, 2], [0, 2], [2, 3]], [[5, 0], [10, 1], [7, 2], [0, 2], [3, 3]], [[5, 0], [10, 1], [7, 2], [1, 2], [3, 1]], [[5, 0], [10, 1], [7, 2], [1, 2], [4, 1]], [[5, 0], [10, 1], [7, 2], [1, 2], [2, 2]], [[5, 0], [10, 1], [7, 2], [1, 2], [3, 2]], [[5, 0], [10, 1], [7, 2], [1, 2], [4, 2]], [[5, 0], [10, 1], [7, 2], [1, 2], [2, 3]], [[5, 0], [10, 1], [7, 2], [1, 2], [3, 3]], [[5, 0], [11, 1], [8, 0], [1, 0], [3, 1]], [[5, 0], [11, 1], [8, 0], [1, 0], [4, 1]], [[5, 0], [11, 1], [8, 0], [1, 0], [2, 2]], [[5, 0], [11, 1], [8, 0], [1, 0], [3, 2]], [[5, 0], [11, 1], [8, 0], [1, 0], [4, 2]], [[5, 0], [11, 1], [8, 0], [1, 0], [2, 3]], [[5, 0], [11, 1], [8, 0], [1, 0], [3, 3]], [[5, 0], [11, 1], [8, 0], [2, 0], [3, 1]], [[5, 0], [11, 1], [8, 0], [2, 0], [4, 1]], [[5, 0], [11, 1], [8, 0], [2, 0], [2, 2]], [[5, 0], [11, 1], [8, 0], [2, 0], [3, 2]], [[5, 0], [11, 1], [8, 0], [2, 0], [4, 2]], [[5, 0], [11, 1], [8, 0], [2, 0], [2, 3]], [[5, 0], [11, 1], [8, 0], [2, 0], [3, 3]], [[5, 0], [11, 
+1], [8, 0], [0, 1], [3, 1]], [[5, 0], [11, 1], [8, 0], [0, 1], [4, 1]], [[5, 0], [11, 1], [8, 0], [0, 1], [2, 2]], [[5, 0], [11, 1], [8, 0], [0, 1], [3, 2]], [[5, 0], [11, 1], [8, 0], [0, 1], [4, 2]], 
+[[5, 0], [11, 1], [8, 0], [0, 1], [2, 3]], [[5, 0], [11, 1], [8, 0], [0, 1], [3, 3]], [[5, 0], [11, 1], [8, 0], [1, 1], [3, 1]], [[5, 0], [11, 1], [8, 0], [1, 1], [4, 1]], [[5, 0], [11, 1], [8, 0], [1, 1], [2, 2]], [[5, 0], [11, 1], [8, 0], [1, 1], [3, 2]], [[5, 0], [11, 1], [8, 0], [1, 1], [4, 2]], [[5, 0], [11, 1], [8, 0], [1, 1], [2, 3]], [[5, 0], [11, 1], [8, 0], [1, 1], [3, 3]], [[5, 0], [11, 1], [8, 0], [2, 1], [3, 1]], [[5, 0], [11, 1], [8, 0], [2, 1], [4, 1]], [[5, 0], [11, 1], [8, 0], [2, 1], [2, 2]], [[5, 0], [11, 1], [8, 0], [2, 1], [3, 2]], [[5, 0], [11, 1], [8, 0], [2, 1], [4, 2]], [[5, 0], [11, 1], [8, 0], [2, 1], [2, 3]], [[5, 0], [11, 1], [8, 0], [2, 1], [3, 3]], [[5, 0], [11, 1], [8, 0], [0, 2], [3, 1]], [[5, 0], [11, 1], [8, 0], [0, 2], [4, 1]], [[5, 0], [11, 1], [8, 0], [0, 
+2], [2, 2]], [[5, 0], [11, 1], [8, 0], [0, 2], [3, 2]],[[10,1],[12,1],[9,1],[11,1],[0,1]], [[5, 0], [11, 1], [8, 0], [0, 2], [4, 2]], [[5, 0], [11, 1], [8, 0], [0, 2], [2, 3]], [[5, 0], [11, 1], [8, 0], [0, 2], [3, 3]], [[5, 0], [11, 1], [8, 0], [1, 2], [3, 1]], [[5, 0], [11, 1], [8, 0], [1, 2], [4, 1]], [[5, 0], [11, 1], [8, 0], [1, 2], [2, 2]], [[5, 0], [11, 1], [8, 0], [1, 2], [3, 2]], [[5, 0], [11, 1], [8, 0], [1, 2], [4, 2]], [[5, 0], [11, 1], [8, 0], [1, 2], [2, 3]], [[5, 0], [11, 1], [8, 0], [1, 2], [3, 3]], [[5, 0], [11, 1], [7, 1], [1, 0], [3, 1]], [[5, 0], [11, 1], [7, 1], [1, 0], [4, 1]], [[5, 0], [11, 1], [7, 1], [1, 0], [2, 2]], [[5, 0], [11, 1], [7, 1], [1, 0], [3, 2]], [[5, 0], [11, 1], [7, 1], [1, 0], [4, 2]], [[5, 0], [11, 1], [7, 1], [1, 0], [2, 3]], [[5, 0], [11, 1], [7, 1], [1, 0], [3, 3]], [[5, 0], [11, 1], [7, 1], [2, 0], [3, 1]], [[5, 0], [11, 1], [7, 1], [2, 0], [4, 1]], [[5, 0], [11, 1], [7, 1], [2, 0], [2, 2]], [[5, 0], [11, 1], [7, 1], [2, 0], [3, 2]], [[5, 0], [11, 1], [7, 1], [2, 0], [4, 2]], [[5, 0], [11, 1], [7, 1], [2, 0], [2, 3]], [[5, 0], [11, 1], [7, 1], [2, 0], [3, 3]], [[5, 0], [11, 1], [7, 1], [0, 1], [3, 1]], [[5, 0], [11, 1], [7, 1], [0, 1], [4, 1]], [[5, 0], [11, 1], [7, 1], [0, 1], [2, 2]], [[5, 0], [11, 1], [7, 1], [0, 1], [3, 2]], [[5, 0], [11, 1], [7, 1], [0, 1], [4, 2]], [[5, 0], [11, 1], [7, 1], [0, 1], [2, 3]], [[5, 0], [11, 1], [7, 1], [0, 1], [3, 3]], [[5, 0], [11, 1], 
+[7, 1], [1, 1], [3, 1]], [[5, 0], [11, 1], [7, 1], [1, 1], [4, 1]], [[5, 0], [11, 1], [7, 1], [1, 1], [2, 2]], [[5, 0], [11, 1], [7, 1], [1, 1], [3, 2]], [[5, 0], [11, 1], [7, 1], [1, 1], [4, 2]], [[5, 0], [11, 1], [7, 1], [1, 1], [2, 3]], [[5, 0], [11, 1], [7, 1], [1, 1], [3, 3]], [[5, 0], [11, 1], [7, 1], [2, 1], [3, 1]], [[5, 0], [11, 1], [7, 1], [2, 1], [4, 1]], [[5, 0], [11, 1], [7, 1], [2, 1], [2, 2]], [[5, 0], [11, 1], [7, 1], [2, 1], [3, 2]], [[5, 0], [11, 1], [7, 1], [2, 1], [4, 2]], [[5, 0], [11, 1], [7, 1], [2, 1], [2, 3]], [[5, 0], [11, 1], [7, 1], [2, 1], [3, 3]], [[5, 0], [11, 1], [7, 1], [0, 2], [3, 1]], [[5, 0], [11, 1], [7, 1], [0, 2], [4, 1]], [[5, 0], [11, 1], [7, 1], [0, 2], [2, 2]], [[5, 0], [11, 1], [7, 1], [0, 2], [3, 2]], [[5, 0], [11, 1], [7, 1], [0, 2], [4, 2]], [[5, 
+0], [11, 1], [7, 1], [0, 2], [2, 3]], [[5, 0], [11, 1], [7, 1], [0, 2], [3, 3]], [[5, 0], [11, 1], [7, 1], [1, 2], [3, 1]], [[5, 0], [11, 1], [7, 1], [1, 2], [4, 1]], [[5, 0], [11, 1], [7, 1], [1, 2], 
+[2, 2]], [[5, 0], [11, 1], [7, 1], [1, 2], [3, 2]], [[5, 0], [11, 1], [7, 1], [1, 2], [4, 2]], [[5, 0], [11, 1], [7, 1], [1, 2], [2, 3]], [[5, 0], [11, 1], [7, 1], [1, 2], [3, 3]], [[5, 0], [11, 1], [8, 1], [1, 0], [3, 1]], [[5, 0], [11, 1], [8, 1], [1, 0], [4, 1]], [[5, 0], [11, 1], [8, 1], [1, 0], [2, 2]], [[5, 0], [11, 1], [8, 1], [1, 0], [3, 2]], [[5, 0], [11, 1], [8, 1], [1, 0], [4, 2]], [[5, 0], [11, 1], [8, 1], [1, 0], [2, 3]], [[5, 0], [11, 1], [8, 1], [1, 0], [3, 3]], [[5, 0], [11, 1], [8, 1], [2, 0], [3, 1]], [[5, 0], [11, 1], [8, 1], [2, 0], [4, 1]], [[5, 0], [11, 1], [8, 1], [2, 0], [2, 2]], [[5, 0], [11, 1], [8, 1], [2, 0], [3, 2]], [[5, 0], [11, 1], [8, 1], [2, 0], [4, 2]], [[5, 0], [11, 1], [8, 1], [2, 0], [2, 3]], [[5, 0], [11, 1], [8, 1], [2, 0], [3, 3]], [[5, 0], [11, 1], [8, 1], [0, 1], [3, 1]], [[5, 0], [11, 1], [8, 1], [0, 1], [4, 1]], [[5, 0], [11, 1], [8, 1], [0, 1], [2, 2]], [[5, 0], [11, 1], [8, 1], [0, 1], [3, 2]], [[5, 0], [11, 1], [8, 1], [0, 1], [4, 2]], [[5, 0], [11, 1], [8, 1], [0, 1], [2, 3]], [[5, 0], [11, 1], [8, 1], [0, 1], [3, 3]], [[5, 0], [11, 1], [8, 1], [1, 1], [3, 1]], [[5, 0], [11, 1], [8, 1], [1, 1], [4, 1]], [[5, 0], [11, 1], [8, 1], [1, 1], [2, 2]], [[5, 0], [11, 1], [8, 1], [1, 1], [3, 2]], [[5, 0], [11, 1], [8, 1], [1, 1], [4, 2]], [[5, 0], [11, 1], [8, 1], [1, 1], [2, 3]], [[5, 0], [11, 1], [8, 1], [1, 1], [3, 3]], [[5, 0], [11, 1], [8, 
+1], [2, 1], [3, 1]], [[5, 0], [11, 1], [8, 1], [2, 1], [4, 1]], [[9,0],[10,0],[12,0],[11,0],[0,0]], [[5, 0], [11, 1], [8, 1], [2, 1], [2, 2]], [[5, 0], [11, 1], [8, 1], [2, 1], [3, 2]], [[5, 0], [11, 1], [8, 1], [2, 1], [4, 2]], [[5, 0], [11, 1], [8, 1], [2, 1], [2, 3]], [[5, 0], [11, 1], [8, 1], [2, 1], [3, 3]], [[5, 0], [11, 1], [8, 1], [0, 2], [3, 1]], [[5, 0], [11, 1], [8, 1], [0, 2], [4, 1]], [[5, 0], [11, 1], [8, 1], [0, 2], [2, 2]], [[5, 0], [11, 1], [8, 1], [0, 2], [3, 2]], [[5, 0], [11, 1], [8, 1], [0, 2], [4, 2]], [[5, 0], [11, 1], [8, 1], [0, 2], [2, 3]], [[5, 0], [11, 1], [8, 1], [0, 2], [3, 3]], [[5, 0], [11, 1], [8, 1], [1, 2], [3, 1]], [[5, 0], [11, 1], [8, 1], [1, 2], [4, 1]], [[5, 0], [11, 1], [8, 1], [1, 2], [2, 2]], [[5, 0], [11, 1], [8, 1], [1, 2], [3, 2]]]"""
     for permutation in permutations:
         position = 0    #Numero de carta siendo analizada
         auxList = []    #Se almacenan los posibles indices para una permutacion en especifico
-        print("Empieza la permutacion : " + str(permutation))
-        permutation = [[9,0],[10,0],[12,0],[11,0],[0,0]]
+        #print(permutations)
+        #print("Empieza la permutacion : " + str(permutation))
+        #permutation = [[9,0],[10,0],[12,0],[11,0],[0,0]]
         for card in permutation:
             #print(card)
             numberCard = card[0]
             rankCard = card[1]
+            #possibleIndexList = indexList[position][rankCard][numberCard]
             try:
                 possibleIndexList = indexList[position][rankCard][numberCard]
             except:
@@ -153,7 +205,7 @@ def searchIndex(permutations, indexList):
 
             if not possibleIndexList:   #Si una carta en una posicion dada no tiene ninguna mano en el archivo, se retorna una lista vacia por default
                 auxList = []
-                print("No se encuentran indices para la carta "+ str(card) + " en la posicion " +str(position))
+                #print("No se encuentran indices para la carta "+ str(card) + " en la posicion " +str(position))
                 break
 
             if(position == 0):          #Si es la carta en la primera posicion, se toman esos indices como los iniciales para comparar las otras cartas
@@ -161,15 +213,15 @@ def searchIndex(permutations, indexList):
                 #print("Se toman los indices " + str(possibleIndexList) + " de la primera carta " + str(card))
 
             else:
-                largo = len(auxList)
+                #largo = len(auxList)
                 i=0
-                while i < largo:
+                while i < len(auxList):
                     wormIndex = auxList[i]
                     if not wormIndex in possibleIndexList: #Se revisan los indices que ya se tienen, si alguno no está en la carta que se está analizando
                         #print("Quito los indices: " + str(wormIndex))
                         auxList.remove(wormIndex)     # se elimina de la lista de posibles indices. Así, al final se va a tener una lista de los indices que se repiten
-                        largo -= 1
-                        i -= 1
+                        #largo -= 1
+                        #i -= 1
                         #print(str(wormIndex) + " no esta en " + str(possibleIndexList))
                     #else:
                         #print(str(wormIndex) + " esta en " + str(auxList))
@@ -179,50 +231,39 @@ def searchIndex(permutations, indexList):
         
         if len(auxList) == 1:        #Si se encontró un indice, se guarda junto a su permutacion
             wormIndexList.append((auxList,permutation))
-            print (str(auxList) + " : " + str(permutation))
+            handPermutations.append(permutation)
+            #print (str(auxList) + " : " + str(permutation))
     
     #print("Termino de buscar indices")
-    return wormIndexList
+    return wormIndexList, handPermutations
 
 
-def createWorms(k, luciferin, ratio, indexList):
+#CREA EL GUSANO
+def createWorms(k, luciferin, ratio, indexList2):
     wormList = []
-    totalHands = []
     CC = []
     #esto tiene que ser una funcion aparte, no en main
     counter = 0
-    totalWorms = 10 #k*25010
-    numAux = 0
+    totalWorms = 20 #k*25010
+    indexListAux = indexList2
     intraDistances = []
-    while (counter < totalWorms):
+
+    while (counter <= totalWorms):
+        indexListAux = initSetUp()
         actualWorm = Worm(luciferin)
+        #print (actualWorm.position[0])
         actualWorm.getCards(ratio) #obtiene las cartas
-        #print(cards)
-        #print (totalCards)
-        #actualWorm.setCards(cards) 
-        #print(cards)
         actualWorm.buildPermutations() #le hace todas las permutaciones
         permutations = actualWorm.getPermutations()
-        #print(permutations)
-        #print(permutations)
-        #print(indexList)
-       #    ESTO TIENE QUE IR EN OTRO WHILE OJO print(searchIndex(permutations, indexList))
-        #totalHands = searchIndex(permutations, indexList) #no se si los indices que devuelve son igual a la cantidad de manos que tiene el gusano con respecto al archivo de manos
-      
-        wormIndexList, handPermutations = searchIndex(permutations,indexList)
-        #print(wormIndexList)
+        wormIndexList, handPermutations = searchIndex(permutations,indexListAux)
+        #print(handPermutations)
         if (wormIndexList!=[]):
-            #print(handPermutations)
-            #print("2")
-            actualWorm.setIdentificator(numAux)
-            numAux += 1
             actualWorm.setTotalHands(handPermutations, len(handPermutations))
-            wormList.append(actualWorm)
             #gus= [actualWorm.getTotalHands(), actualWorm]
-            listaAux = [actualWorm.total, actualWorm]
-            totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
+            #totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
             intraDistance= EQ8(actualWorm)
             actualWorm.setIntraDistance(intraDistance)
+            wormList.append(actualWorm)
             intraDistances.append(intraDistance)
         #actualWorm.setTotalHands(totalHands, len(totalHands)) 
         #newIntraDistance=EQ8(actualWorm)
@@ -233,118 +274,90 @@ def createWorms(k, luciferin, ratio, indexList):
     
     #searchIndex(wormList[0].permutations,indexList)
     #CC=[]
-    #CC = subconjuntoDatos(k, totalHands, ratio) #esto tengo que perfeccionarlo aun
+    CC = subconjuntoDatos(wormList, ratio) #esto tengo que perfeccionarlo aun
     #print(wormList)
     return wormList, CC, intraDistances
 
 
 
-def subconjuntoDatos(k, subconjuntoDatos, wormList, ratio):
+def subconjuntoDatos(wormList, ratio):
     #subconjuntoDatos.sort()
+    #Ordena la lista de gusanos con respecto a la cantidad de permutaciones de mano que tienen
+    for i in range(len(wormList)-1):
+        for j in range (0, len(wormList)-i-1):
+            if (wormList[j].total > wormList[j+1].total):
+                wormList[j], wormList[j+1] = wormList[j+1], wormList[j]
     CC=[]
-    contador=0
-    #contador2=0
-    aux = 0
-    while (contador<k):
-        max = subconjuntoDatos[0]
-        for index in range(len(subconjuntoDatos)):
-            if (subconjuntoDatos[index]>=max and index not in CC):
-                #if (len(CC)==0):
-                max = subconjuntoDatos[index]
-                aux = index 
-                #else:
-                    #if (distanceCentroids(wormList, CC, index, ratio)):
-                    #    max = subconjuntoDatos[index]
-                    #    aux = index 
-            max = subconjuntoDatos[0]       
-        CC.append(aux)
-        contador+=1
+    counter = 0
+    CC.append(wormList[0])
+    for i in range (1, len(wormList)):
+        actualWorm = wormList[i]
+        distance = True
+        while (counter < len(CC) and distance):
+            result = euclidianDistance(CC[counter].position, actualWorm.position)
+            if (result<ratio):
+                distance = False
+            counter += 1
+        if (distance):
+            CC.append(actualWorm)
+    #while (counter < len(wormList)):
     return CC
 
 
-def distanceCentroids(wormList, CC, actualWorm, ratio): #esta funcion aun no sirve
-    rightDistance = False
-    distance = 0
-    for index in range (len(CC)):
-        if (CC[index] != actualWorm):
-            #print (CC[index])
-            #distance = euclidianDistance(wormList[CC[index]].getPosition(), wormList[actualWorm].getPosition())
-            if (distance>ratio):
-                rightDistance = True
-    return rightDistance
 
 
-#hacer el gso principal
-"""
+def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, indexList, intraDistances):
+    n = 25010
+    totalHands = []
 
-def gso(wormList, m, s, gamma, ratio, luciferin, CC):
-    contador=0
-    gusanitos=[]
-    for index in range (m):
-        gusanitos.append(crearGusanito())
+    while (len(CC)>k):
+        newWormList = []
+        for i in range (len(wormList)):
+            indexListAux = initSetUp()
+            actualWorm = wormList[i]
+            resultado9 = EQ9(n,SSE, actualWorm.intradistance, wormList[i], intraDistances)
+            wormList[i].setAdaptation(resultado9)
+            wormList[i].setLuciferin(EQ1(wormList[i], rho, gamma, resultado9))
+        #for i in range (len(wormList)):
+            neighborsSet = EQ2(wormList, wormList[i], ratio)
+            bestNeighbor = EQ3(wormList[i], wormList, neighborsSet)
+            wormList[i].setPosition(EQ4(s, wormList[i], bestNeighbor))
+            actualWorm.getCards(ratio) #obtiene las cartas
+            actualWorm.buildPermutations()
+            permutations = actualWorm.getPermutations()
+            wormIndexList, handPermutations = searchIndex(permutations,indexListAux)
+            if (wormIndexList!=[]):
+                actualWorm.setTotalHands(handPermutations, len(handPermutations))
+                wormList.append(actualWorm)
+                #gus= [actualWorm.getTotalHands(), actualWorm]
+                totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
+                intraDistance= EQ8(actualWorm)
+                actualWorm.setIntraDistance(intraDistance)
+                intraDistances.append(intraDistance)
+                actualWorm.setInstraDistances(intraDistances)
+        wormList = newWormList
+        CC = subconjuntoDatos(wormList, ratio)
 
-    while (contador < len(gusanitos)):
-        subconjuntoDatos = gusanitos[contador].obtenerSubconjunto()
+        SSE = EQ6(CC, k)
+        interDist = EQ7(k, CC, wormList)
 
-    #se calcula la formula 8
-    CC=seleccionarCC(k, subconjuntoDatos)
-    #se calcula la formula 6
-    #se calcula la formula 7
-    contador=0
-    #while (contador < len(CC)):
-        #hacer un arreglo con los Fj
-        #formula 9
-        #formula 1
-        #formula 2
-        #formula 3
-        #formula 4
-        #verificar condiciones
-        #formula 8
-        #subconjuntoDatos pero ahora con el array de Fj
-        #formula 6 y 7
-        #formula 5 pero realmente no
 
-"""
+
 def main():
     M = 0.09
     s= 0.03
     gamma = 0.6
-    ratio = 0.55
+    ratio = 1.5
     luciferin = 5
     k=10
     s = 0.03
-    testHands, indexList = initSetUp()
-    wormList, CC = createWorms(k, luciferin, ratio, indexList)
-    #wormList[0].buildPermutations()
-    #test = searchIndex(wormList[0].permutations,indexList) 
-    #print(wormList[0].permutations)
-    #print(test)
-    #SSE = EQ6(CC, k)
-    #InterDist = EQ7(k, CC, wormList)
+    indexList = initSetUp()
+    rho = 0.4
+    wormList, CC, intraDistances = createWorms(k, luciferin, ratio, indexList)
+    SSE = EQ6(CC, k)
+    #print(SSE)
+    InterDist = EQ7(k, CC, wormList)
+    gso(wormList, M, s, gamma, ratio, luciferin, CC, k, SSE, InterDist, rho, indexList, intraDistances)
     
-    
-    
-    """
-    #esto tiene que ser una funcion aparte, no en main
-    while (contador<totalWorms):
-        gusanoActual = Worm(luciferin)
-        positions = gusanoActual.getPosition()
-        #print (positions)
-        cards, totalCards = gusanoActual.getCards(positions, ratio)
-        #print(cards)
-        #print (totalCards)
-        #gusanoActual.setCards(cards, totalCards)
-        CC.append(totalCards)
-        gusanitos.append(gusanoActual)
-        #intradistance = formula 8
-        contador+=1
-    """
-    #ccReal = subconjuntoDatos(k, CC)
-    #print(ccReal)
-   # intraDistacia = EQ7(k, ccReal, wormList)
-    #EQ4(s, wormList, 3, 5)
-    #ecuacion6
-    #ecuacion7
-    #hacer gso con el CC obtenido
 
 main()
