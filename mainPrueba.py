@@ -2,6 +2,9 @@ from gusanosPrueba import Worm
 import numpy as np
 import math
 
+HAND_TEST_FILENAME = 'poker-hand-training-true.data'
+
+#TODO: Crear una matriz de distancias entre gusanos y paralelizarlo. Paralelizar tambien la busqueda de cartas de cada gusano. Paralelizar la actualizacion de los gusanos cuando se mueven 
 
 def euclidianDistance(pointA,pointB):
     assert len(pointA) == len(pointB)
@@ -140,8 +143,9 @@ def initSetUp():
                 indexList[i][j].append([])
 
     numLine = 0
-        #Procesamiento de archivo de manos
-    for line in open('poker-hand-training-true.data'):
+    #Procesamiento de archivo de manos
+    
+    for line in open(HAND_TEST_FILENAME):
         arrayLine = np.fromstring(line, dtype=int, sep=',')
         position = 0
 
@@ -244,13 +248,14 @@ def createWorms(k, luciferin, ratio, indexList2):
     CC = []
     #esto tiene que ser una funcion aparte, no en main
     counter = 0
+    wormIndex = 0
     totalWorms = 20 #k*25010
     indexListAux = indexList2
     intraDistances = []
 
-    while (counter <= totalWorms):
+    while (counter < totalWorms):
         indexListAux = initSetUp()
-        actualWorm = Worm(luciferin)
+        actualWorm = Worm(luciferin,wormIndex)
         #print (actualWorm.position[0])
         actualWorm.getCards(ratio) #obtiene las cartas
         actualWorm.buildPermutations() #le hace todas las permutaciones
@@ -264,6 +269,7 @@ def createWorms(k, luciferin, ratio, indexList2):
             intraDistance= EQ8(actualWorm)
             actualWorm.setIntraDistance(intraDistance)
             wormList.append(actualWorm)
+            wormIndex += 1
             intraDistances.append(intraDistance)
         #actualWorm.setTotalHands(totalHands, len(totalHands)) 
         #newIntraDistance=EQ8(actualWorm)
@@ -274,9 +280,10 @@ def createWorms(k, luciferin, ratio, indexList2):
     
     #searchIndex(wormList[0].permutations,indexList)
     #CC=[]
+    wormListAux = wormList.copy()
     CC = subconjuntoDatos(wormList, ratio) #esto tengo que perfeccionarlo aun
     #print(wormList)
-    return wormList, CC, intraDistances
+    return wormList, CC, intraDistances, wormListAux
 
 
 
@@ -303,10 +310,35 @@ def subconjuntoDatos(wormList, ratio):
     #while (counter < len(wormList)):
     return CC
 
+def findClosestNeighbor(worm,neighborMatrix):
+    closestNeighborID = 0
+    for neighborID in range(len(neighborMatrix[worm.identificador])):
+        if neighborMatrix[worm.identificador][neighborID] < neighborMatrix[worm.identificador][closestNeighborID]:
+            closestNeighborID = neighborID
+    return closestNeighborID
 
+def createNeighborMatrix(wormList):
+    neighborMatrix = np.ndarray(shape=(len(wormList),len(wormList)), dtype=int)
+    numWormLine = 0
+    numWormColumn = 0
+    for wormLine in wormList:
+        numWormColumn = 0
+        for wormColumn in wormList:
+            print("Analiza gusano " + str(wormLine.identificador) + " contra el gusano " + str(wormColumn.identificador))
+            neighborMatrix[numWormLine][numWormColumn] = euclidianDistance(wormLine.position, wormColumn.position)
+            numWormColumn += 1
+    return neighborMatrix
 
+#Toma la matriz de distancias y actualiza las distancias de un gusano en específico
+def updateNeighborMatrix(neighborMatrix, wormToUpDate, wormListAux):
+    #Actualiza la linea en la matriz correspondiente al gusano
+    for wormColumn in range(len(neighborMatrix[wormToUpDate.identificador])):
+        newDistance = euclidianDistance(wormListAux[wormToUpDate.identificador].position,wormListAux[wormColumn].position)
+        neighborMatrix[wormToUpDate.identificador][wormColumn] = newDistance
+        neighborMatrix[wormColumn][wormToUpDate.identificador] = newDistance
+    return neighborMatrix
 
-def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, indexList, intraDistances):
+def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, indexList, intraDistances, neighborMatrix,wormListAux):
     n = 25010
     totalHands = []
 
@@ -315,26 +347,28 @@ def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, ind
         for i in range (len(wormList)):
             indexListAux = initSetUp()
             actualWorm = wormList[i]
+            print("el gusano que se está calculando es: " + str(actualWorm.identificador))
             resultado9 = EQ9(n,SSE, actualWorm.intradistance, wormList[i], intraDistances)
             wormList[i].setAdaptation(resultado9)
             wormList[i].setLuciferin(EQ1(wormList[i], rho, gamma, resultado9))
         #for i in range (len(wormList)):
-            neighborsSet = EQ2(wormList, wormList[i], ratio)
-            bestNeighbor = EQ3(wormList[i], wormList, neighborsSet)
-            wormList[i].setPosition(EQ4(s, wormList[i], bestNeighbor))
+            closestWormID = findClosestNeighbor(wormList[i], neighborMatrix)
+            closestWorm = wormListAux[closestWormID]
+            wormList[i].setPosition(EQ4(s, wormList[i], closestWorm))
+            neighborMatrix = updateNeighborMatrix(neighborMatrix,wormList[i],wormListAux)
             actualWorm.getCards(ratio) #obtiene las cartas
             actualWorm.buildPermutations()
             permutations = actualWorm.getPermutations()
             wormIndexList, handPermutations = searchIndex(permutations,indexListAux)
             if (wormIndexList!=[]):
                 actualWorm.setTotalHands(handPermutations, len(handPermutations))
-                wormList.append(actualWorm)
+                newWormList.append(actualWorm)
                 #gus= [actualWorm.getTotalHands(), actualWorm]
                 totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
                 intraDistance= EQ8(actualWorm)
                 actualWorm.setIntraDistance(intraDistance)
                 intraDistances.append(intraDistance)
-                actualWorm.setInstraDistances(intraDistances)
+                actualWorm.setIntraDistance(intraDistances)
         wormList = newWormList
         CC = subconjuntoDatos(wormList, ratio)
 
@@ -353,11 +387,12 @@ def main():
     s = 0.03
     indexList = initSetUp()
     rho = 0.4
-    wormList, CC, intraDistances = createWorms(k, luciferin, ratio, indexList)
+    wormList, CC, intraDistances, wormListAux = createWorms(k, luciferin, ratio, indexList)
+    neighborMatrix = createNeighborMatrix(wormListAux)
     SSE = EQ6(CC, k)
     #print(SSE)
     InterDist = EQ7(k, CC, wormList)
-    gso(wormList, M, s, gamma, ratio, luciferin, CC, k, SSE, InterDist, rho, indexList, intraDistances)
+    gso(wormList, M, s, gamma, ratio, luciferin, CC, k, SSE, InterDist, rho, indexList, intraDistances,neighborMatrix,wormListAux)
     
 
 main()

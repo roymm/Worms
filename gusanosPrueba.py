@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 class Worm:
-    def __init__(self, luciferin):
+    def __init__(self, luciferin, identificador):
         #EL NIVEL DE LUCIFERINA ES IGUAL A 5,0 PA TODOS
         self.luciferin = luciferin
         self.adaptation = 0 #funcion 9
@@ -22,6 +22,7 @@ class Worm:
         self.intradistance = 0 #sumatoria esto se tiene que calcular por medio de la formuala 8
         self.total=0 #total de numeros de permutaciones que va a tener el gusano
         self.totalHands = [] #
+        self.identificador = identificador
 
 
     def getPosition(self):
@@ -77,10 +78,12 @@ class Worm:
     #Hacer un set para las cartas y la intra distancia
     #hacer un get pa las posiciones
     def getCards(self, ratio):
+        #print("entro a getCards")
         contador = 0
         index = 0
         cardSet = []
         #finalCardSet = []
+        print(self.position)
         while (contador < 5):
             cardSet = []
             limitMax1 = int(self.position[index] + ratio)
