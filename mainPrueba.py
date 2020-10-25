@@ -120,7 +120,7 @@ def EQ9(n, resultEQ6, resultEQ8, actualWorm, intraDistances):
     result1 = (1/n)*actualWorm.total
     resultMultiplication= resultEQ6 * (resultEQ8/max(intraDistances))
     result = result1 / resultMultiplication
-    print(result)
+    #print(result)
     return result
 
 
@@ -312,9 +312,12 @@ def subconjuntoDatos(wormList, ratio):
 
 def findClosestNeighbor(worm,neighborMatrix):
     closestNeighborID = 0
+    if worm.identificador == 0:
+        closestNeighborID = 1
     for neighborID in range(len(neighborMatrix[worm.identificador])):
-        if neighborMatrix[worm.identificador][neighborID] < neighborMatrix[worm.identificador][closestNeighborID]:
-            closestNeighborID = neighborID
+        if neighborID != worm.identificador:            #Si no soy yo mismo
+            if neighborMatrix[worm.identificador][neighborID] < neighborMatrix[worm.identificador][closestNeighborID]:
+                closestNeighborID = neighborID
     return closestNeighborID
 
 def createNeighborMatrix(wormList):
@@ -326,6 +329,7 @@ def createNeighborMatrix(wormList):
         for wormColumn in wormList:
             print("Analiza gusano " + str(wormLine.identificador) + " contra el gusano " + str(wormColumn.identificador))
             neighborMatrix[numWormLine][numWormColumn] = euclidianDistance(wormLine.position, wormColumn.position)
+            print(euclidianDistance(wormLine.position, wormColumn.position))
             numWormColumn += 1
     return neighborMatrix
 
@@ -333,7 +337,12 @@ def createNeighborMatrix(wormList):
 def updateNeighborMatrix(neighborMatrix, wormToUpDate, wormListAux):
     #Actualiza la linea en la matriz correspondiente al gusano
     for wormColumn in range(len(neighborMatrix[wormToUpDate.identificador])):
-        newDistance = euclidianDistance(wormListAux[wormToUpDate.identificador].position,wormListAux[wormColumn].position)
+        newDistance = euclidianDistance(wormToUpDate.position,wormListAux[wormColumn].position)
+        if math.isnan(newDistance):
+            print("Se cae calculando distancia entre " + str(wormToUpDate.identificador) + " y " + str(wormColumn) +":")
+            print(wormToUpDate.position)
+            print(wormListAux[wormColumn].position)
+
         neighborMatrix[wormToUpDate.identificador][wormColumn] = newDistance
         neighborMatrix[wormColumn][wormToUpDate.identificador] = newDistance
     return neighborMatrix
@@ -341,18 +350,23 @@ def updateNeighborMatrix(neighborMatrix, wormToUpDate, wormListAux):
 def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, indexList, intraDistances, neighborMatrix,wormListAux):
     n = 25010
     totalHands = []
+    numberCicles = 0
 
     while (len(CC)>k):
+        numberCicles +=1
         newWormList = []
         for i in range (len(wormList)):
             indexListAux = initSetUp()
             actualWorm = wormList[i]
-            print("el gusano que se está calculando es: " + str(actualWorm.identificador))
+            #print("Ciclo numero: " + str(numberCicles))
+            #print("Gusano: " + str(actualWorm.identificador))
             resultado9 = EQ9(n,SSE, actualWorm.intradistance, wormList[i], intraDistances)
             wormList[i].setAdaptation(resultado9)
             wormList[i].setLuciferin(EQ1(wormList[i], rho, gamma, resultado9))
         #for i in range (len(wormList)):
             closestWormID = findClosestNeighbor(wormList[i], neighborMatrix)
+            #if actualWorm.identificador == 0:
+            #    print("el vecino mas cercano del 0 es: " + str(closestWormID))
             closestWorm = wormListAux[closestWormID]
             wormList[i].setPosition(EQ4(s, wormList[i], closestWorm))
             neighborMatrix = updateNeighborMatrix(neighborMatrix,wormList[i],wormListAux)
@@ -368,10 +382,9 @@ def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, ind
                 intraDistance= EQ8(actualWorm)
                 actualWorm.setIntraDistance(intraDistance)
                 intraDistances.append(intraDistance)
-                actualWorm.setIntraDistance(intraDistances)
         wormList = newWormList
         CC = subconjuntoDatos(wormList, ratio)
-
+        print("CC al final del ciclo: " + str(numberCicles) + " = " +str(len(CC)))
         SSE = EQ6(CC, k)
         interDist = EQ7(k, CC, wormList)
 

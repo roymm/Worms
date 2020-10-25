@@ -83,7 +83,7 @@ class Worm:
         index = 0
         cardSet = []
         #finalCardSet = []
-        print(self.position)
+        #print(self.position)
         while (contador < 5):
             cardSet = []
             limitMax1 = int(self.position[index] + ratio)
