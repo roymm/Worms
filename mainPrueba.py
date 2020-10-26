@@ -350,9 +350,10 @@ def createNeighborMatrix(wormList):
 def updateNeighborMatrix(neighborMatrix, wormToUpDate, wormListAux):
     # Actualiza la linea en la matriz correspondiente al gusano
     for wormColumn in range(len(neighborMatrix[wormToUpDate.identificador])):
-        newDistance = euclidianDistance(wormToUpDate.position, wormListAux[wormColumn].position)
-        neighborMatrix[wormToUpDate.identificador][wormColumn] = newDistance
-        neighborMatrix[wormColumn][wormToUpDate.identificador] = newDistance
+        if not wormToUpDate.identificador == wormColumn:    #Para no actualizar la distancia con él mismo
+            newDistance = euclidianDistance(wormToUpDate.position, wormListAux[wormColumn].position)
+            neighborMatrix[wormToUpDate.identificador][wormColumn] = newDistance
+            neighborMatrix[wormColumn][wormToUpDate.identificador] = newDistance
     return neighborMatrix
 
 
