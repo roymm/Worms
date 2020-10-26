@@ -1,4 +1,4 @@
-from gusanos2 import Worm
+from gusanosPrueba import Worm
 import numpy as np
 import math
 from mpi4py import MPI
@@ -325,7 +325,7 @@ def findClosestNeighbor(worm,neighborMatrix):
     return closestNeighborID
 
 def createNeighborMatrix(wormList):
-    neighborMatrix = np.ndarray(shape=(len(wormList),len(wormList)), dtype=int)
+    neighborMatrix = np.ndarray(shape=(len(wormList),len(wormList)), dtype=float)
     numWormLine = 0
     numWormColumn = 0
     for wormLine in wormList:
@@ -433,7 +433,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 12
+    totalWorms = 20
     neighborMatrix = [[]]
     if(pid==0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
@@ -442,11 +442,16 @@ def main(argv):
     rho, gamma, s, luciferin, k, m, indexList = comm.bcast((rho, gamma, s, luciferin, k, m, indexList),0)
     pidTotalWorms = int(totalWorms/size)
     minRange = int(pid*pidTotalWorms)
+    
+    print("holi soy: " + str(pid)+ str(minRange))
+    comm.Barrier()
     wormList, intraDistances, wormListAux = createWorms(k, luciferin, ratio, indexList, pidTotalWorms, minRange)
+    comm.Barrier()
     finalWormList = comm.reduce(wormList, op=MPI.SUM)
     finalIntraDistances = comm.reduce(intraDistances, op=MPI.SUM)
     finalWormListAux= comm.reduce(wormListAux, op=MPI.SUM)
-
+    comm.Barrier()
+    print("holi soy: " + str(pid)+ str(minRange))
     if (pid==0):
         CC = subconjuntoDatos(finalWormList, ratio, 0)
         neighborMatrix = createNeighborMatrix(finalWormListAux)
@@ -454,26 +459,32 @@ def main(argv):
         #InterDist = EQ7(k, CC, wormList)
     comm.Barrier()
     finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE = comm.bcast((finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE),0)
-    minRange = int(pid*(len(finalWormList) - 2)/size)
-    maxRange = int((pid+1)*(len(finalWormList) - 2)/size)
-    wormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, finalIntraDistances,neighborMatrix,finalWormListAux, minRange, maxRange)#ESTO LO HACE EN UN CILO
     comm.Barrier()
-    finalWormList = comm.reduce(wormList, op=MPI.SUM)
-    contador = 0
-    comm.Barrier()
+    
+    contador=0
     #DE AQUI PA ABAJO ES QUE NO SIRVE
     print("holi soy: " + str(pid))
-    if (pid==0):
-        while (len(CC)>k):
-            contador+=1
-            if (pid==0):
-                #CC = subconjuntoDatos(finalWormList, ratio, len(CC))
-                print("CC al final del ciclo: " + str(contador) + " = " +str(len(CC)))
-                SSE = EQ6(CC, k)
-                #interDist = EQ7(k, CC, wormList)
-            CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
-            #comm.Barrier()
     
+    while (len(CC)>k):
+        contador+=1
+        minRange = int(pid*(len(finalWormList)/size))
+        maxRange = int((pid+1)*(len(finalWormList)/size))
+        wormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, finalIntraDistances,neighborMatrix,finalWormListAux, minRange, maxRange)#ESTO LO HACE EN UN CILO
+        comm.Barrier()
+        finalWormList = comm.reduce(wormList, op=MPI.SUM)
+        comm.Barrier()
+        if(pid==0):
+            CC = subconjuntoDatos(finalWormList, ratio, len(CC))
+        comm.Barrier()
+        if (pid==0):
+            print("CC al final del ciclo: " + str(contador) + " = " +str(len(CC)))
+            SSE = EQ6(CC, k)
+                        #interDist = EQ7(k, CC, wormList)
+        comm.Barrier()
+        CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
+        comm.Barrier()
+                    #comm.Barrier()"""
+        
     
 if __name__ == "__main__":
     main(sys.argv[1:])  
