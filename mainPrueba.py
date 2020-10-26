@@ -1,4 +1,4 @@
-from gusanos2 import Worm
+from gusanosPrueba import Worm
 import numpy as np
 import math
 from mpi4py import MPI
@@ -6,7 +6,6 @@ import sys, getopt
 
 HAND_TEST_FILENAME = 'poker-hand-training-true.data'
 
-#TODO: Crear una matriz de distancias entre gusanos y paralelizarlo. Paralelizar tambien la busqueda de cartas de cada gusano. Paralelizar la actualizacion de los gusanos cuando se mueven 
 
 def euclidianDistance(pointA,pointB):
     assert len(pointA) == len(pointB)
@@ -31,7 +30,7 @@ def EQ2(wormList, actualWorm, ratio):
         if (distance < ratio and wormList[index].luciferin > actualWorm.luciferin):
             neighborsSet.append(wormList[index] )
             #print(distance)
-    
+
     return neighborsSet
 
 
@@ -68,7 +67,7 @@ def EQ4(s, actualWorm, bestNeighbor):
 
 def EQ6(centroidsList, k):
     sumCentroid = 0
-    sum = 0 
+    sum = 0
     finalSum = 0
     #print(centroidsList)
     #print(centroidsList[0].totalHands)
@@ -86,8 +85,8 @@ def EQ6(centroidsList, k):
                 sum = sum + ((euclidianDistance(posicion, card))**2)
             sumCentroid= sumCentroid + sum
         finalSum = finalSum + sumCentroid
-        
-    
+
+
     return finalSum
 
 
@@ -131,7 +130,7 @@ def initSetUp():
     testHands = []
     indexList = []
     #allCards = np.resize(np.arange(13),(5,4,13))
-        
+
         #Agrega las 5 posiciones
     for i in range (5):
         indexList.append([])
@@ -146,7 +145,7 @@ def initSetUp():
 
     numLine = 0
     #Procesamiento de archivo de manos
-    
+
     for line in open(HAND_TEST_FILENAME):
         arrayLine = np.fromstring(line, dtype=int, sep=',')
         position = 0
@@ -156,16 +155,16 @@ def initSetUp():
             card = arrayLine[i+1] -1
             indexList[position][rank][card].append(numLine)
             position += 1
-                
+
         numLine += 1
         testHands.append(arrayLine)
-        
+
     testHands = np.array(testHands)
     #print(indexList[0][1][10])
     return indexList #LES HICE RETURN PORQUE CON EL GLOBAL NO ME CORRIA
 
 
-#Funcion que toma una lista de listas (la propiedad dataSet de los gusanos) y relaciona cada carta con su posicion 
+#Funcion que toma una lista de listas (la propiedad dataSet de los gusanos) y relaciona cada carta con su posicion
 # a una mano del archivo poker-hand-training-true.data
 # Recibe una lista de pares [numero de carta, palo] y retorna una lista de enteros (indices del array testHands)
 def searchIndex(permutations, indexList):
@@ -234,12 +233,12 @@ def searchIndex(permutations, indexList):
 
                     i += 1
             position += 1
-        
+
         if len(auxList) == 1:        #Si se encontró un indice, se guarda junto a su permutacion
             wormIndexList.append((auxList,permutation))
             handPermutations.append(permutation)
             #print (str(auxList) + " : " + str(permutation))
-    
+
     #print("Termino de buscar indices")
     return wormIndexList, handPermutations
 
@@ -273,16 +272,17 @@ def createWorms(k, luciferin, ratio, indexList2, totalWorms, minRange):
             wormList.append(actualWorm)
             wormIndex += 1
             intraDistances.append(intraDistance)
-        #actualWorm.setTotalHands(totalHands, len(totalHands)) 
+        #actualWorm.setTotalHands(totalHands, len(totalHands))
         #newIntraDistance=EQ8(actualWorm)
         #)
         #intradistance = formula 8"""
 
         counter+=1
-    
+
     #searchIndex(wormList[0].permutations,indexList)
     #CC=[]
     wormListAux = wormList.copy()
+
     #CC = subconjuntoDatos(wormList, ratio) #esto tengo que perfeccionarlo aun
     #print(wormList)
     return wormList, intraDistances, wormListAux
@@ -300,6 +300,8 @@ def subconjuntoDatos(wormList, ratio, previousCC):
     counter = 0
     CC.append(wormList[0])
     for i in range (1, len(wormList)):
+        if len(CC) == previousCC - 1:
+            break
         actualWorm = wormList[i]
         distance = True
         while (counter < len(CC) and distance):
@@ -309,9 +311,7 @@ def subconjuntoDatos(wormList, ratio, previousCC):
             counter += 1
         if (distance):
             CC.append(actualWorm)
-    if (previousCC == len(CC)):
-        CC.pop(len(CC)-1)
-    #while (counter < len(wormList)):
+
     return CC
 
 def findClosestNeighbor(worm,neighborMatrix):
@@ -325,7 +325,7 @@ def findClosestNeighbor(worm,neighborMatrix):
     return closestNeighborID
 
 def createNeighborMatrix(wormList):
-    neighborMatrix = np.ndarray(shape=(len(wormList),len(wormList)), dtype=int)
+    neighborMatrix = np.ndarray(shape=(len(wormList),len(wormList)), dtype=float)
     numWormLine = 0
     numWormColumn = 0
     for wormLine in wormList:
@@ -333,8 +333,9 @@ def createNeighborMatrix(wormList):
         for wormColumn in wormList:
             print("Analiza gusano " + str(wormLine.identificador) + " contra el gusano " + str(wormColumn.identificador))
             neighborMatrix[numWormLine][numWormColumn] = euclidianDistance(wormLine.position, wormColumn.position)
-            print(euclidianDistance(wormLine.position, wormColumn.position))
+            print(neighborMatrix[numWormLine][numWormColumn])
             numWormColumn += 1
+        numWormLine += 1
     return neighborMatrix
 
 #Toma la matriz de distancias y actualiza las distancias de un gusano en específico
@@ -382,11 +383,11 @@ def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, int
             intraDistance= EQ8(actualWorm)
             actualWorm.setIntraDistance(intraDistance)
             intraDistances.append(intraDistance)
-            
+
     wormList = newWormList
     return wormList
         #ESTO LO HACE EL PROCESO 0
-        
+
 
 
 def obtenerValoresLineaComandos(argv):
@@ -433,7 +434,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 12
+    totalWorms = 20
     neighborMatrix = [[]]
     if(pid==0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
@@ -454,26 +455,27 @@ def main(argv):
         #InterDist = EQ7(k, CC, wormList)
     comm.Barrier()
     finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE = comm.bcast((finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE),0)
-    minRange = int(pid*(len(finalWormList) - 2)/size)
-    maxRange = int((pid+1)*(len(finalWormList) - 2)/size)
-    wormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, finalIntraDistances,neighborMatrix,finalWormListAux, minRange, maxRange)#ESTO LO HACE EN UN CILO
+    minRange = int(pid*len(finalWormList)/size)
+    maxRange = int((pid+1)*len(finalWormList)/size)
     comm.Barrier()
     finalWormList = comm.reduce(wormList, op=MPI.SUM)
     contador = 0
     comm.Barrier()
-    #DE AQUI PA ABAJO ES QUE NO SIRVE
-    print("holi soy: " + str(pid))
+    largoCentroides = len(CC)
     if (pid==0):
-        while (len(CC)>k):
+        while (largoCentroides>k):
             contador+=1
             if (pid==0):
-                #CC = subconjuntoDatos(finalWormList, ratio, len(CC))
+                finalWormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList,
+                               finalIntraDistances, neighborMatrix, finalWormListAux, minRange, maxRange)
+                CC = subconjuntoDatos(finalWormList, ratio, largoCentroides)
                 print("CC al final del ciclo: " + str(contador) + " = " +str(len(CC)))
+                largoCentroides = len(CC)
                 SSE = EQ6(CC, k)
-                #interDist = EQ7(k, CC, wormList)
-            CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
+                interDist = EQ7(k, CC, wormList)
+            #CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
             #comm.Barrier()
-    
-    
+
+
 if __name__ == "__main__":
-    main(sys.argv[1:])  
+    main(sys.argv[1:])
