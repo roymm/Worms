@@ -1,6 +1,8 @@
-from gusanosPrueba import Worm
+from gusanos2 import Worm
 import numpy as np
 import math
+from mpi4py import MPI
+import sys, getopt
 
 HAND_TEST_FILENAME = 'poker-hand-training-true.data'
 
@@ -243,13 +245,13 @@ def searchIndex(permutations, indexList):
 
 
 #CREA EL GUSANO
-def createWorms(k, luciferin, ratio, indexList2):
+def createWorms(k, luciferin, ratio, indexList2, totalWorms, minRange):
     wormList = []
-    CC = []
+    #CC = []
     #esto tiene que ser una funcion aparte, no en main
     counter = 0
-    wormIndex = 0
-    totalWorms = 20 #k*25010
+    wormIndex = minRange
+    #totalWorms = 20 #k*25010
     indexListAux = indexList2
     intraDistances = []
 
@@ -281,13 +283,13 @@ def createWorms(k, luciferin, ratio, indexList2):
     #searchIndex(wormList[0].permutations,indexList)
     #CC=[]
     wormListAux = wormList.copy()
-    CC = subconjuntoDatos(wormList, ratio) #esto tengo que perfeccionarlo aun
+    #CC = subconjuntoDatos(wormList, ratio) #esto tengo que perfeccionarlo aun
     #print(wormList)
-    return wormList, CC, intraDistances, wormListAux
+    return wormList, intraDistances, wormListAux
 
 
 
-def subconjuntoDatos(wormList, ratio):
+def subconjuntoDatos(wormList, ratio, previousCC):
     #subconjuntoDatos.sort()
     #Ordena la lista de gusanos con respecto a la cantidad de permutaciones de mano que tienen
     for i in range(len(wormList)-1):
@@ -307,6 +309,8 @@ def subconjuntoDatos(wormList, ratio):
             counter += 1
         if (distance):
             CC.append(actualWorm)
+    if (previousCC == len(CC)):
+        CC.pop(len(CC)-1)
     #while (counter < len(wormList)):
     return CC
 
@@ -347,65 +351,129 @@ def updateNeighborMatrix(neighborMatrix, wormToUpDate, wormListAux):
         neighborMatrix[wormColumn][wormToUpDate.identificador] = newDistance
     return neighborMatrix
 
-def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, interDist, rho, indexList, intraDistances, neighborMatrix,wormListAux):
+
+
+
+def gso(wormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, intraDistances, neighborMatrix,wormListAux, minRange, maxRange):
     n = 25010
     totalHands = []
-    numberCicles = 0
-
-    while (len(CC)>k):
-        numberCicles +=1
-        newWormList = []
-        for i in range (len(wormList)):
-            indexListAux = initSetUp()
-            actualWorm = wormList[i]
-            #print("Ciclo numero: " + str(numberCicles))
-            #print("Gusano: " + str(actualWorm.identificador))
-            resultado9 = EQ9(n,SSE, actualWorm.intradistance, wormList[i], intraDistances)
-            wormList[i].setAdaptation(resultado9)
-            wormList[i].setLuciferin(EQ1(wormList[i], rho, gamma, resultado9))
-        #for i in range (len(wormList)):
-            closestWormID = findClosestNeighbor(wormList[i], neighborMatrix)
-            #if actualWorm.identificador == 0:
-            #    print("el vecino mas cercano del 0 es: " + str(closestWormID))
-            closestWorm = wormListAux[closestWormID]
-            wormList[i].setPosition(EQ4(s, wormList[i], closestWorm))
-            neighborMatrix = updateNeighborMatrix(neighborMatrix,wormList[i],wormListAux)
-            actualWorm.getCards(ratio) #obtiene las cartas
-            actualWorm.buildPermutations()
-            permutations = actualWorm.getPermutations()
-            wormIndexList, handPermutations = searchIndex(permutations,indexListAux)
-            if (wormIndexList!=[]):
-                actualWorm.setTotalHands(handPermutations, len(handPermutations))
-                newWormList.append(actualWorm)
+    newWormList = []
+    if (maxRange>len(wormList)):
+        maxRange=len(wormList)
+    for i in range (minRange, maxRange):
+        indexListAux = initSetUp()
+        actualWorm = wormList[i]
+        resultado9 = EQ9(n,SSE, actualWorm.intradistance, wormList[i], intraDistances)
+        wormList[i].setAdaptation(resultado9)
+        wormList[i].setLuciferin(EQ1(wormList[i], rho, gamma, resultado9))
+        closestWormID = findClosestNeighbor(wormList[i], neighborMatrix)
+        closestWorm = wormListAux[closestWormID]
+        wormList[i].setPosition(EQ4(s, wormList[i], closestWorm))
+        neighborMatrix = updateNeighborMatrix(neighborMatrix,wormList[i],wormListAux)
+        actualWorm.getCards(ratio) #obtiene las cartas
+        actualWorm.buildPermutations()
+        permutations = actualWorm.getPermutations()
+        wormIndexList, handPermutations = searchIndex(permutations,indexListAux)
+        if (wormIndexList!=[]):
+            actualWorm.setTotalHands(handPermutations, len(handPermutations))
+            newWormList.append(actualWorm)
                 #gus= [actualWorm.getTotalHands(), actualWorm]
-                totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
-                intraDistance= EQ8(actualWorm)
-                actualWorm.setIntraDistance(intraDistance)
-                intraDistances.append(intraDistance)
-        wormList = newWormList
-        CC = subconjuntoDatos(wormList, ratio)
-        print("CC al final del ciclo: " + str(numberCicles) + " = " +str(len(CC)))
-        SSE = EQ6(CC, k)
-        interDist = EQ7(k, CC, wormList)
+            totalHands.append(len(handPermutations)) #aqui le hago set al numero total de manos que tiene un gusano para que sea mas facil sacar los CC
+            intraDistance= EQ8(actualWorm)
+            actualWorm.setIntraDistance(intraDistance)
+            intraDistances.append(intraDistance)
+            
+    wormList = newWormList
+    return wormList
+        #ESTO LO HACE EL PROCESO 0
+        
 
 
+def obtenerValoresLineaComandos(argv):
+    decLuciferin = ""
+    incLuciferin = ""
+    distWorms = ""
+    valIniLuciferin = ""
+    classes = ""
+    worms = ""
+    try:
+        opts, arg = getopt.getopt(argv, "r:g:s:l:k:m:", ["R=", "G=", "S=", "L=", "K=", "M="])
+    except getopt.GetoptError:
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-r", "--R"):
+            decLuciferin = arg
+        elif opt in ("-g", "--G"):
+            incLuciferin = arg
+        elif opt in ("-s", "--S"):
+            distWorms = arg
+        elif opt in ("-l", "--L"):
+            valIniLuciferin = arg
+        elif opt in ("-k", "--K"):
+            classes = arg
+        elif opt in ("-m", "--M"):
+            worms = arg
+    return float(decLuciferin), float(incLuciferin), float(distWorms), int(valIniLuciferin), int(classes), float(worms)
 
-def main():
-    M = 0.09
-    s= 0.03
-    gamma = 0.6
+
+def main(argv):
+    comm = MPI.COMM_WORLD
+    pid = comm.rank
+    size = comm.size
+    rho = 0
+    gamma = 0
+    s = 0
+    luciferin = 0
+    k = 0
+    m = 0
+    wormList = []
+    CC = []
+    intraDistances = []
+    wormListAux = []
+    indexList = []
+    SSE = 0
     ratio = 1.5
-    luciferin = 5
-    k=10
-    s = 0.03
-    indexList = initSetUp()
-    rho = 0.4
-    wormList, CC, intraDistances, wormListAux = createWorms(k, luciferin, ratio, indexList)
-    neighborMatrix = createNeighborMatrix(wormListAux)
-    SSE = EQ6(CC, k)
-    #print(SSE)
-    InterDist = EQ7(k, CC, wormList)
-    gso(wormList, M, s, gamma, ratio, luciferin, CC, k, SSE, InterDist, rho, indexList, intraDistances,neighborMatrix,wormListAux)
-    
+    totalWorms = 12
+    neighborMatrix = [[]]
+    if(pid==0):
+        rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
+        indexList = initSetUp()
 
-main()
+    rho, gamma, s, luciferin, k, m, indexList = comm.bcast((rho, gamma, s, luciferin, k, m, indexList),0)
+    pidTotalWorms = int(totalWorms/size)
+    minRange = int(pid*pidTotalWorms)
+    wormList, intraDistances, wormListAux = createWorms(k, luciferin, ratio, indexList, pidTotalWorms, minRange)
+    finalWormList = comm.reduce(wormList, op=MPI.SUM)
+    finalIntraDistances = comm.reduce(intraDistances, op=MPI.SUM)
+    finalWormListAux= comm.reduce(wormListAux, op=MPI.SUM)
+
+    if (pid==0):
+        CC = subconjuntoDatos(finalWormList, ratio, 0)
+        neighborMatrix = createNeighborMatrix(finalWormListAux)
+        SSE = EQ6(CC, k)
+        #InterDist = EQ7(k, CC, wormList)
+    comm.Barrier()
+    finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE = comm.bcast((finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE),0)
+    minRange = int(pid*(len(finalWormList) - 2)/size)
+    maxRange = int((pid+1)*(len(finalWormList) - 2)/size)
+    wormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList, finalIntraDistances,neighborMatrix,finalWormListAux, minRange, maxRange)#ESTO LO HACE EN UN CILO
+    comm.Barrier()
+    finalWormList = comm.reduce(wormList, op=MPI.SUM)
+    contador = 0
+    comm.Barrier()
+    #DE AQUI PA ABAJO ES QUE NO SIRVE
+    print("holi soy: " + str(pid))
+    if (pid==0):
+        while (len(CC)>k):
+            contador+=1
+            if (pid==0):
+                #CC = subconjuntoDatos(finalWormList, ratio, len(CC))
+                print("CC al final del ciclo: " + str(contador) + " = " +str(len(CC)))
+                SSE = EQ6(CC, k)
+                #interDist = EQ7(k, CC, wormList)
+            CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
+            #comm.Barrier()
+    
+    
+if __name__ == "__main__":
+    main(sys.argv[1:])  
