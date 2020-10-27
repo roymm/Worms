@@ -4,9 +4,10 @@ import math
 from mpi4py import MPI
 import sys
 import getopt
+import fileHandler
 
 HAND_TEST_FILENAME = 'poker-hand-training-true.data'
-
+FINAL_RESULTS_FILENAME = 'final_results.txt'
 
 def euclidianDistance(pointA, pointB):
     assert len(pointA) == len(pointB)
@@ -437,7 +438,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 20
+    totalWorms = 14
     neighborMatrix = [[]]
     if (pid == 0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
@@ -479,6 +480,9 @@ def main(argv):
                 interDist = EQ7(k, CC, wormList)
             # CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
             # comm.Barrier()
+
+        finalResultsWriter = fileHandler.FileHandler()
+        finalResultsWriter.writeFinalResults(FINAL_RESULTS_FILENAME, CC)
 
 
 if __name__ == "__main__":
