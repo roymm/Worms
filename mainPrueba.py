@@ -438,7 +438,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 14
+    totalWorms = 20
     neighborMatrix = [[]]
     if (pid == 0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
