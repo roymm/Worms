@@ -438,7 +438,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 14
+    totalWorms = 20
     neighborMatrix = [[]]
     if (pid == 0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
@@ -460,27 +460,30 @@ def main(argv):
     comm.Barrier()
     finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE = comm.bcast(
         (finalWormList, finalIntraDistances, finalWormListAux, CC, neighborMatrix, SSE), 0)
-    minRange = int(pid * len(finalWormList) / size)
-    maxRange = int((pid + 1) * len(finalWormList) / size)
     comm.Barrier()
-    finalWormList = comm.reduce(wormList, op=MPI.SUM)
     contador = 0
-    comm.Barrier()
     largoCentroides = len(CC)
-    if (pid == 0):
-        while (largoCentroides > k):
-            contador += 1
-            if (pid == 0):
-                finalWormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList,
+    comm.Barrier()
+    while (largoCentroides > k):
+        contador += 1
+        minRange = int(pid*(len(finalWormList)/size))
+        maxRange = int((pid+1)*(len(finalWormList)/size))
+        finalWormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList,
                                     finalIntraDistances, neighborMatrix, finalWormListAux, minRange, maxRange)
-                CC = subconjuntoDatos(finalWormList, ratio, largoCentroides)
-                print("CC al final del ciclo: " + str(contador) + " = " + str(len(CC)))
-                largoCentroides = len(CC)
-                SSE = EQ6(CC, k)
-                interDist = EQ7(k, CC, wormList)
-            # CC, SSE,finalWormList = comm.bcast((CC, SSE, finalWormList),0)
-            # comm.Barrier()
-
+        comm.Barrier() 
+        finalWormList1 = comm.reduce(finalWormList, op=MPI.SUM)  
+        comm.Barrier() 
+        if(pid==0):
+            CC = subconjuntoDatos(finalWormList1, ratio, largoCentroides)
+            print("CC al final del ciclo: " + str(contador) + " = " + str(len(CC)))
+            largoCentroides = len(CC)
+            SSE = EQ6(CC, k)
+            #interDist = EQ7(k, CC, wormList)
+        comm.Barrier()
+        CC, SSE,finalWormList1 = comm.bcast((CC, SSE, finalWormList1),0)
+        finalWormList = finalWormList1
+        comm.Barrier()
+    if (pid==0):
         finalResultsWriter = fileHandler.FileHandler()
         finalResultsWriter.writeFinalResults(FINAL_RESULTS_FILENAME, CC)
 
