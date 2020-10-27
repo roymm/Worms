@@ -1,4 +1,4 @@
-from gusanosPrueba import Worm
+from GusanosDefinitivo import Worm
 import numpy as np
 import math
 from mpi4py import MPI
