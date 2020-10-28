@@ -3,13 +3,9 @@ import numpy as np
 class FileHandler:
     def __init__(self):
         pass
-    
-    #Lee el archivo fileName linea por linea y devuelve una matriz NumPy de
-    def readCSVToArray(self,fileName):
-        with open(fileName) as openFile:
-            arrayCSV = [np.fromstring(arrayLine, dtype=int, sep=',') for arrayLine in openFile]
-            return arrayCSV
 
+    #Funcion que escribe los resultados finales del algoritmo en un archivo.
+    #Recibe una lista de los gusanos centroides y un nombre de archivo para escribir
     def writeFinalResults(self, filename,listaCentroides):
         with open(filename,'w+') as openFile:
             openFile.write("---RESULTADOS FINALES---\n\n")
