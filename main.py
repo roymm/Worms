@@ -262,7 +262,7 @@ def main(argv):
     indexList = []
     SSE = 0
     ratio = 1.5
-    totalWorms = 20
+    totalWorms = 1000 #Las pruebas hechas siempre fueron con 20 gusanos
     neighborMatrix = [[]]
     if (pid == 0):
         rho, gamma, s, luciferin, k, m = obtenerValoresLineaComandos(argv)
@@ -304,6 +304,34 @@ def main(argv):
             # comm.Barrier()
         finalResultsWriter = fileHandler.FileHandler()
         finalResultsWriter.writeFinalResults(FINAL_RESULTS_FILENAME, CC)
+
+    #Ciclo paralelizado
+    """
+        while (largoCentroides > k):
+        contador += 1
+        minRange = int(pid*(len(finalWormList)/size))
+        maxRange = int((pid+1)*(len(finalWormList)/size))
+        finalWormList = gso(finalWormList, m, s, gamma, ratio, luciferin, CC, k, SSE, rho, indexList,
+                                    finalIntraDistances, neighborMatrix, finalWormListAux, minRange, maxRange)
+        comm.Barrier() 
+        finalWormList1 = comm.reduce(finalWormList, op=MPI.SUM)  
+        comm.Barrier() 
+        if(pid==0):
+            CC = subconjuntoDatos(finalWormList1, ratio, largoCentroides)
+            print("CC al final del ciclo: " + str(contador) + " = " + str(len(CC)))
+            largoCentroides = len(CC)
+            SSE = EQ6(CC, k)
+            #interDist = EQ7(k, CC, wormList)
+        comm.Barrier()
+        CC, SSE,finalWormList1 = comm.bcast((CC, SSE, finalWormList1),0)
+        finalWormList = finalWormList1
+        comm.Barrier()
+    if (pid==0):
+        finalResultsWriter = fileHandler.FileHandler()
+        finalResultsWriter.writeFinalResults(FINAL_RESULTS_FILENAME, CC)
+
+
+    """
 
 
 
